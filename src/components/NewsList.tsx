@@ -4,25 +4,21 @@ import { useFetchNews } from '@/hooks/useFetchNews';
 import NewsCard from './NewsCard';
 import { NewsPost, POST_TAGS, BASE_URL } from '@/api/config';
 
-// Убедимся, что тип для детальной новости правильный
 interface NewsDetailPost extends NewsPost {
-  content?: string; // Это поле может приходить с полным HTML
+  content?: string;
 }
 
 const NewsList = () => {
-  const { posts, loading, hasMore, loadMore, error } = useFetchNews();
+  const { posts, loading, hasMore, loadMore, error, offset } = useFetchNews(); // Достаем offset
   const [selectedNews, setSelectedNews] = useState<NewsDetailPost | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  // Для отладки: выводим в консоль данные, приходящие с сервера
   useEffect(() => {
     if (posts.length > 0) {
       console.log('ДАННЫЕ СПИСКА НОВОСТЕЙ С СЕРВЕРА:', posts);
     }
   }, [posts]);
 
-  // --- ИЗМЕНЕНИЕ №1: Функция getCategoryBadge находится здесь ---
-  // Она должна быть внутри компонента NewsList, чтобы быть доступной для модального окна.
   const getCategoryBadge = (type: number) => {
     const badges = ['badge-news', 'badge-achievements', 'badge-education', 'badge-events'];
     const categoryLabel = POST_TAGS[type] || 'Новости';
@@ -35,6 +31,7 @@ const NewsList = () => {
   };
   
   const formatDate = (dateInSeconds: number) => {
+    if (!dateInSeconds) return ''; // Добавим проверку на случай отсутствия даты
     const date = new Date(dateInSeconds * 1000);
     return date.toLocaleDateString('ru-RU', {
       year: 'numeric',
@@ -45,13 +42,13 @@ const NewsList = () => {
 
   const handleReadMore = async (post: NewsPost) => {
     setLoadingDetail(true);
-    setSelectedNews(post); // Сразу открываем модальное окно с базовыми данными
+    setSelectedNews(post);
     try {
       const url = `${BASE_URL}/content/news/${post.slug}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch news detail');
       const detailData: NewsDetailPost = await response.json();
-      setSelectedNews(detailData); // Обновляем данными с полным текстом
+      setSelectedNews(detailData);
     } catch (err) {
       console.error('Error loading news detail:', err);
     } finally {
@@ -88,7 +85,11 @@ const NewsList = () => {
 
       {!loading && hasMore && posts.length > 0 && (
         <div className="text-center">
-          <button onClick={loadMore} className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-lg font-medium transition-colors">
+          {/* --- ИЗМЕНЕНИЕ ЗДЕСЬ --- */}
+          <button 
+            onClick={() => loadMore(9, offset)} 
+            className="bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-lg font-medium transition-colors"
+          >
             Показать еще
           </button>
         </div>
@@ -107,21 +108,19 @@ const NewsList = () => {
                 <X className="w-5 h-5" />
               </button>
               <div className="absolute top-4 left-4">
-                {getCategoryBadge(selectedNews.type)} {/* <-- Теперь вызов работает */}
+                {getCategoryBadge(selectedNews.type)}
               </div>
             </div>
 
             <div className="p-6">
               <h2 className="text-2xl font-bold text-foreground mb-4">{selectedNews.title}</h2>
               <div className="flex items-center justify-between text-sm text-muted-foreground mb-6">
-                {/* --- ИЗМЕНЕНИЕ №2: Исправлено отображение даты --- */}
                 <span>{formatDate(selectedNews.publish_date)}</span>
                 <span>{selectedNews.author}</span>
               </div>
               {loadingDetail ? (
                 <p>Загрузка...</p>
               ) : (
-                // --- ИЗМЕНЕНИЕ №3: Исправлено отображение полного текста (HTML) ---
                 <div 
                   className="prose"
                   dangerouslySetInnerHTML={{ __html: selectedNews.content || selectedNews.body || '' }} 
