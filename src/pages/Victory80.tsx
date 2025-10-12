@@ -37,19 +37,20 @@ const Victory80 = () => {
     'https://i.ibb.co/0RWkhcPn/phoca-thumb-l-8512.jpg'
   ];
   const graduatesImages = [
-    'https://i.ibb.co/TxVC4P3D/phoca-thumb-l-8239.jpg',
-    'https://i.ibb.co/0Vy2Jk9H/phoca-thumb-l-8240.jpg',
-    'https://i.ibb.co/DgH6xG3c/phoca-thumb-l-8241.jpg',
-    'https://i.ibb.co/XrHk0nyj/phoca-thumb-l-8242.jpg',
-    'https://i.ibb.co/DfG5tWLj/phoca-thumb-l-8243.jpg',
-    'https://i.ibb.co/C52nGdzx/phoca-thumb-l-8244.jpg',
-    'https://i.ibb.co/Z6DgbCyb/phoca-thumb-l-8245.jpg',
-    'https://i.ibb.co/rG1SMSFB/phoca-thumb-l-8246.jpg',
-    'https://i.ibb.co/1GJCNfNs/phoca-thumb-l-8247.jpg',
-    'https://i.ibb.co/1wMXzZB/phoca-thumb-l-8248.jpg',
-    'https://i.ibb.co/MkRDtwcw/phoca-thumb-l-8249.jpg',
-    'https://i.ibb.co/60kBSNyw/phoca-thumb-l-8250.jpg',
-    'https://i.ibb.co/FLVVPLb0/phoca-thumb-l-8251.jpg'
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302984/phoca_thumb_l_8239_ua5lyh.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302984/phoca_thumb_l_8240_lucoqa.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302984/phoca_thumb_l_8241_udsa0f.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302983/phoca_thumb_l_8242_o0cu7a.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302984/phoca_thumb_l_8243_uewtfr.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302983/phoca_thumb_l_8244_eskpot.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302983/phoca_thumb_l_8245_d8nww4.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302983/phoca_thumb_l_8246_i1e20t.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302983/phoca_thumb_l_8247_mj39ob.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302983/phoca_thumb_l_8248_digfbr.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302983/phoca_thumb_l_8249_lx7qid.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302983/phoca_thumb_l_8250_ubzju0.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760302983/phoca_thumb_l_8251_s6r1mc.jpg',
+    'https://res.cloudinary.com/dzbqwcdwc/image/upload/v1760303444/phoca_thumb_l_8255_wcxiuj.jpg'
   ];
 
   const lopatinImages = [
