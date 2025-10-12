@@ -17,8 +17,40 @@ const Victory80 = () => {
   const [currentSlideBookCarousel, setCurrentSlideBookCarousel] = useState(0);
   const [currentSlideExcursionsCarousel, setCurrentSlideExcursionsCarousel] = useState(0);
 
-  const teachersImages = Array.from({ length: 17 }, (_, i) => `/victory/teachers/teacher-${i + 1}.jpg`);
-  const graduatesImages = Array.from({ length: 14 }, (_, i) => `/victory/graduates/graduate-${i + 1}.jpg`);
+  const teachersImages = [
+    'https://i.ibb.co/5ghv2M3M/phoca-thumb-l-8223.jpg',
+    'https://i.ibb.co/rGSNfLz9/phoca-thumb-l-8224.jpg',
+    'https://i.ibb.co/QFm8P9Wr/phoca-thumb-l-8225.jpg',
+    'https://i.ibb.co/YB3bNTSb/phoca-thumb-l-8226.jpg',
+    'https://i.ibb.co/PsbjhPpV/phoca-thumb-l-8227.jpg', 
+    'https://i.ibb.co/r2dqxxH5/phoca-thumb-l-8228.jpg',
+    'https://i.ibb.co/GfR457tZ/phoca-thumb-l-8229.jpg', 
+    'https://i.ibb.co/qFBLCm1h/phoca-thumb-l-8230.jpg',
+    'https://i.ibb.co/d0y7gDhH/phoca-thumb-l-8231.jpg',
+    'https://i.ibb.co/rffsxtpL/phoca-thumb-l-8232.jpg',
+    'https://i.ibb.co/93tQ3Rtt/phoca-thumb-l-8233.jpg',
+    'https://i.ibb.co/Rpcg7dxG/phoca-thumb-l-8234.jpg',//
+    'https://i.ibb.co/ksTNt6Tr/phoca-thumb-l-8235.jpg',
+    'https://i.ibb.co/C3YWjdLs/phoca-thumb-l-8236.jpg',
+    'https://i.ibb.co/GyGS32t/phoca-thumb-l-8237.jpg',
+    'https://i.ibb.co/qYb64dMB/phoca-thumb-l-8238.jpg',
+    'https://i.ibb.co/0RWkhcPn/phoca-thumb-l-8512.jpg'
+  ];
+  const graduatesImages = [
+    'https://i.ibb.co/TxVC4P3D/phoca-thumb-l-8239.jpg',
+    'https://i.ibb.co/0Vy2Jk9H/phoca-thumb-l-8240.jpg',
+    'https://i.ibb.co/DgH6xG3c/phoca-thumb-l-8241.jpg',
+    'https://i.ibb.co/XrHk0nyj/phoca-thumb-l-8242.jpg',
+    'https://i.ibb.co/DfG5tWLj/phoca-thumb-l-8243.jpg',
+    'https://i.ibb.co/C52nGdzx/phoca-thumb-l-8244.jpg',
+    'https://i.ibb.co/Z6DgbCyb/phoca-thumb-l-8245.jpg',
+    'https://i.ibb.co/rG1SMSFB/phoca-thumb-l-8246.jpg',
+    'https://i.ibb.co/1GJCNfNs/phoca-thumb-l-8247.jpg',
+    'https://i.ibb.co/1wMXzZB/phoca-thumb-l-8248.jpg',
+    'https://i.ibb.co/MkRDtwcw/phoca-thumb-l-8249.jpg',
+    'https://i.ibb.co/60kBSNyw/phoca-thumb-l-8250.jpg',
+    'https://i.ibb.co/FLVVPLb0/phoca-thumb-l-8251.jpg'
+  ];
 
   const lopatinImages = [
     '/victory/lopatin-1.jpg',
@@ -774,7 +806,7 @@ const Victory80 = () => {
       </div>
 
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-7xl max-h-[90vh] p-0">
+        <DialogContent className="w-auto max-h-[90vh] p-0 border-none bg-transparent shadow-none">
           <DialogTitle className="sr-only">Изображение</DialogTitle>
           <div className="relative">
             <button
@@ -787,7 +819,7 @@ const Victory80 = () => {
               <img
                 src={selectedImage}
                 alt="Увеличенное изображение"
-                className="w-full h-auto max-h-[85vh] object-contain"
+                className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg"
               />
             )}
           </div>
