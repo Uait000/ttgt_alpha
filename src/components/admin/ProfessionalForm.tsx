@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { professionalsApi, type CreateProfessionalPayload } from '@/api/professionals-api';
-import type { Professional, Teacher } from '@/api/config'; // Убедитесь, что импорт Teacher верный
+import type { Professional, Teacher } from '@/api/config';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,6 +42,13 @@ const CATEGORIES = [
   { value: 'success', label: 'Успех' },
 ];
 
+// --- ИЗМЕНЕНИЕ №1: Добавляем функцию для форматирования ФИО ---
+const formatTeacherName = (teacher: Teacher) => {
+  if (!teacher || !teacher.second_name || !teacher.first_name) return '';
+  return `${teacher.second_name} ${teacher.first_name[0]}. ${teacher.middle_name ? teacher.middle_name[0] + '.' : ''}`;
+};
+
+
 export default function ProfessionalForm({
   open,
   onClose,
@@ -50,7 +57,6 @@ export default function ProfessionalForm({
 }: ProfessionalFormProps) {
   const [loading, setLoading] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
-  // --- ИЗМЕНЕНИЕ №1: Храним полные объекты авторов, а не просто имена ---
   const [authors, setAuthors] = useState<Teacher[]>([]);
   const { toast } = useToast();
 
@@ -68,11 +74,13 @@ export default function ProfessionalForm({
       try {
         const { teachersApi } = await import('@/api/teachers');
         const teachersList = await teachersApi.getAll();
-        // --- ИЗМЕНЕНИЕ №2: Сохраняем массив объектов, а не строк ---
         setAuthors(teachersList);
       } catch (error) {
-        // Заглушка, если API не работает. Убедимся, что у объектов есть id.
-        setAuthors([{ id: 1, name: 'Администрация' }, { id: 2, name: 'Учебный отдел' }]);
+        // --- ИЗМЕНЕНИЕ №2: Исправляем заглушку под новый формат данных ---
+        setAuthors([
+          { id: 1, first_name: 'Администрация', second_name: '', middle_name: '' },
+          { id: 2, first_name: 'Учебный', second_name: 'отдел', middle_name: '' }
+        ]);
       }
     };
     loadAuthors();
@@ -80,7 +88,7 @@ export default function ProfessionalForm({
 
   useEffect(() => {
     if (editProfessional) {
-      const profDate = new Date(editProfessional.date * 1000); // Предполагаем, что date - это Unix timestamp
+      const profDate = new Date(editProfessional.date * 1000);
 
       setFormData({
         title: editProfessional.title,
@@ -94,7 +102,8 @@ export default function ProfessionalForm({
       setFormData({
         title: '',
         body: '',
-        author: authors.length > 0 ? authors[0].name : '',
+        // --- ИЗМЕНЕНИЕ №3: Используем функцию форматирования для автора по умолчанию ---
+        author: authors.length > 0 ? formatTeacherName(authors[0]) : '',
         category: 'achievement',
       });
       setSelectedDate(new Date());
@@ -118,7 +127,7 @@ export default function ProfessionalForm({
     try {
       const payload: CreateProfessionalPayload & { date: number } = {
         ...formData,
-        date: Math.floor(selectedDate.getTime() / 1000), // Отправляем дату
+        date: Math.floor(selectedDate.getTime() / 1000),
       };
 
       if (editProfessional) {
@@ -127,10 +136,10 @@ export default function ProfessionalForm({
           payload,
           imageFiles.length > 0 ? imageFiles : undefined
         );
-        toast({ title: 'Успешно', description: 'Профессионал обновлен' });
+        toast({ title: 'Успешно', description: 'Запись обновлена' });
       } else {
         await professionalsApi.create(payload, imageFiles.length > 0 ? imageFiles : undefined);
-        toast({ title: 'Успешно', description: 'Профессионал создан' });
+        toast({ title: 'Успешно', description: 'Запись создана' });
       }
       onSuccess();
     } catch (error) {
@@ -144,7 +153,7 @@ export default function ProfessionalForm({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editProfessional ? 'Редактировать профессионала' : 'Создать профессионала'}</DialogTitle>
+          <DialogTitle>{editProfessional ? 'Редактировать запись' : 'Создать запись'}</DialogTitle>
           <DialogDescription>Заполните форму для {editProfessional ? 'обновления' : 'создания'} записи о профессионале</DialogDescription>
         </DialogHeader>
 
@@ -177,12 +186,15 @@ export default function ProfessionalForm({
               <Select value={formData.author} onValueChange={(value) => setFormData({ ...formData, author: value })}>
                 <SelectTrigger><SelectValue placeholder="Выберите автора" /></SelectTrigger>
                 <SelectContent>
-                  {/* --- ИЗМЕНЕНИЕ №3: Добавляем уникальный key, используя author.id --- */}
-                  {authors.map((author) => (
-                    <SelectItem key={author.id} value={author.name}>
-                      {author.name}
-                    </SelectItem>
-                  ))}
+                  {/* --- ИЗМЕНЕНИЕ №4: Форматируем ФИО в списке --- */}
+                  {authors.map((author) => {
+                    const formattedName = formatTeacherName(author);
+                    return (
+                      <SelectItem key={author.id} value={formattedName}>
+                        {formattedName}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -192,7 +204,6 @@ export default function ProfessionalForm({
               <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value as any })}>
                 <SelectTrigger><SelectValue placeholder="Выберите категорию" /></SelectTrigger>
                 <SelectContent>
-                  {/* --- ИЗМЕНЕНИЕ №4: Убеждаемся, что здесь тоже есть key --- */}
                   {CATEGORIES.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
                       {cat.label}
