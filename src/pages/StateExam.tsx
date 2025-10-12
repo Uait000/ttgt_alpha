@@ -20,13 +20,13 @@ const StateExam = () => {
   ];
 
   const methodicalRecommendations = [
-    { name: 'Методические рекомендации (указания) по оформлению дипломных проектов (работ)', url: '/gia/metodicheskie-rekomendacii-1.pdf' },
+    { name: 'Методические рекомендации (указания) по оформлению дипломных проектов (работ)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/Metod_Ukaz_Oforml_KP_DP_07.04.2021.pdf' },
     { name: 'Методические указания по оформлению курсового и дипломного проекта (работ) (Н.А. Рашевская)', url: '/gia/metodicheskie-rashevskaya.pdf' },
-    { name: 'Методические рекомендации к выполнению экономической части дипломной работы для студентов специальности 08.02.10 (Т.Г. Кочеткова)', url: '/gia/metodicheskie-kochetkova-1.pdf' },
-    { name: 'Методические рекомендации по оформлению дипломного проекта для студентов специальности 08.02.10 (Т.Г. Кочеткова)', url: '/gia/metodicheskie-kochetkova-2.pdf' },
-    { name: 'Методические рекомендации по дипломному проектированию по теме: Организация и технология строительства новой железной дороги (С.В. Малыхина)', url: '/gia/metodicheskie-malykhina-1.pdf' },
-    { name: 'Методические рекомендации по дипломному проектированию по теме: Проектирование участка новой железнодорожной линии (С.В. Малыхина)', url: '/gia/metodicheskie-malykhina-2.pdf' },
-    { name: 'Методические указания по дипломному проектированию для специальности 08.02.10 (А.Н. Орищенко)', url: '/gia/metodicheskie-orishchenko.pdf' }
+    { name: 'Методические рекомендации к выполнению экономической части дипломной работы для студентов специальности 08.02.10 (Т.Г. Кочеткова)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/Metod_Rek_Ekonomika_DR_080210_Kochetkova_11012021.pdf' },
+    { name: 'Методические рекомендации по оформлению дипломного проекта для студентов специальности 08.02.10 (Т.Г. Кочеткова)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/Metod_Ukaz_Oforml_DP_080210_Kochetkova_12032021.pdf' },
+    { name: 'Методические рекомендации по дипломному проектированию по теме: Организация и технология строительства новой железной дороги (С.В. Малыхина)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/Metod_Ukaz_Oforml_DP_080210_Org_i_Tehn_stroit_now_gd_Malyhina_12032021.pdf' },
+    { name: 'Методические рекомендации по дипломному проектированию по теме: Проектирование участка новой железнодорожной линии (С.В. Малыхина)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/Metod_Ukaz_Oforml_DP_080210_Proektir_uchastka_now_gd_linii_Malyhina_12032021.pdf' },
+    { name: 'Методические указания по дипломному проектированию для специальности 08.02.10 (А.Н. Орищенко)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/Metod_Ukaz_Oforml_DP_080210_Orishhenko_12032021.pdf' }
   ];
 
   return (

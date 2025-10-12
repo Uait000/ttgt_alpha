@@ -43,8 +43,6 @@ const generateSlug = (text: string): string => {
 
 
 export const postsApi = {
-  // Функция getAllForAdmin была удалена
-
   getAll: async (params?: { limit?: number; offset?: number }): Promise<NewsPost[]> => {
     const queryParams = new URLSearchParams();
     if (params?.limit) queryParams.append('limit', params.limit.toString());
@@ -84,7 +82,9 @@ export const postsApi = {
     }
 
     if (imageFiles && imageFiles.length > 0) {
-      const uploadPromises = imageFiles.map(file => filesApi.upload(file, 'news'));
+      // --- ИЗМЕНЕНИЕ ЗДЕСЬ (строка 87) ---
+      // Убираем второй аргумент 'news', так как filesApi.upload его больше не принимает
+      const uploadPromises = imageFiles.map(file => filesApi.upload(file));
       const uploadResults = await Promise.all(uploadPromises);
       finalPayload.image_urls = uploadResults.map(result => result.url);
       delete finalPayload.image_url;
@@ -126,7 +126,9 @@ export const postsApi = {
     }
 
     if (imageFiles && imageFiles.length > 0) {
-      const uploadPromises = imageFiles.map(file => filesApi.upload(file, 'news'));
+      // --- ИЗМЕНЕНИЕ ЗДЕСЬ (строка 129) ---
+      // Убираем второй аргумент 'news'
+      const uploadPromises = imageFiles.map(file => filesApi.upload(file));
       const uploadResults = await Promise.all(uploadPromises);
       finalPayload.image_urls = uploadResults.map(result => result.url);
       delete finalPayload.image_url;
