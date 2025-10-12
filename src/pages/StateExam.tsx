@@ -5,18 +5,18 @@ import { ExternalLink } from 'lucide-react';
 
 const StateExam = () => {
   const programs = [
-    { name: 'Автоматика и телемеханика на транспорте (железнодорожном транспорте)', url: '/gia/avtomatika.pdf' },
-    { name: 'Компьютерные системы и комплексы', url: '/gia/kompyuternye-sistemy.pdf' },
-    { name: 'Организация перевозок и управление на транспорте (по видам)', url: '/gia/organizaciya-perevozok.pdf' },
-    { name: 'Сварочное производство', url: '/gia/svarochnoe-proizvodstvo.pdf' },
-    { name: 'Строительство железных дорог, путь и путевое хозяйство', url: '/gia/stroitelstvo-zhd.pdf' },
-    { name: 'Строительство и эксплуатация зданий и сооружений', url: '/gia/stroitelstvo-zdaniy.pdf' },
-    { name: 'Техническая эксплуатация подъемно-транспортных , строительных , дорожных машин и оборудования (по отраслям)', url: '/gia/tehnicheska-ekspluataciya-mashin.pdf' },
-    { name: 'Техническая эксплуатация подвижного состава железных дорог (электроподвижной состав)', url: '/gia/ekspluataciya-elektropodvizhnoy.pdf' },
-    { name: 'Техническая эксплуатация подвижного состава железных дорог (вагоны)', url: '/gia/ekspluataciya-vagonov.pdf' },
-    { name: 'Техническая эксплуатация транспортного радиоэлектронного оборудования (по видам траснпорта)', url: '/gia/radioelektronnoe-oborudovanie.pdf' },
-    { name: 'Экономика и бухгалтерский учет (по отраслям)', url: '/gia/ekonomika.pdf' },
-    { name: 'Электроснабжение', url: '/gia/elektrosnabzhenie.pdf' }
+    { name: 'Автоматика и телемеханика на транспорте (железнодорожном транспорте)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_27_02_03.pdf' },
+    { name: 'Компьютерные системы и комплексы', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_09_02_01.pdf' },
+    { name: 'Организация перевозок и управление на транспорте (по видам)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_23_02_01.pdf' },
+    { name: 'Сварочное производство', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_15_02_19.pdf' },
+    { name: 'Строительство железных дорог, путь и путевое хозяйство', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_23_02_08.pdf' },
+    { name: 'Строительство и эксплуатация зданий и сооружений', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_08_02_01.pdf' },
+    { name: 'Техническая эксплуатация подъемно-транспортных , строительных , дорожных машин и оборудования (по отраслям)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_23_02_04.pdf' },
+    { name: 'Техническая эксплуатация подвижного состава железных дорог (электроподвижной состав)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_23_02_06_01.pdf' },
+    { name: 'Техническая эксплуатация подвижного состава железных дорог (вагоны)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_23_02_06_03.pdf' },
+    { name: 'Техническая эксплуатация транспортного радиоэлектронного оборудования (по видам траснпорта)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_11_02_06.pdf' },
+    { name: 'Экономика и бухгалтерский учет (по отраслям)', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_38_02_01.pdf' },
+    { name: 'Электроснабжение', url: 'https://ttgt.org/images/raspisanie/Pr_GIA/GIA_13_02_07.pdf' }
   ];
 
   const methodicalRecommendations = [
@@ -42,12 +42,18 @@ const StateExam = () => {
               <h1 className="text-3xl font-bold text-primary mb-8 text-center">ГИА</h1>
               
               <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-border/50 p-8 space-y-8">
-                {/* График ГИА */}
-                <div className="bg-white rounded-lg p-6">
-                  <h2 className="text-xl font-semibold text-primary mb-4 text-center">
-                    График проведения государтсвенной итоговой аттестации выпускников ТТЖТ - филиала РГУПС с 15.06.2025 г. по 28.06.2025
+                {/* --- ИЗМЕНЕНИЕ ЗДЕСЬ --- */}
+                {/* Оборачиваем весь блок в тег `<a>` */}
+                <a
+                  href="https://ttgt.org/images/raspisanie/Pr_GIA/Grafik_GIA_2025.pdf" // <-- ЗАМЕНИТЕ НА ВАШУ ССЫЛКУ НА PDF
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-white rounded-lg p-6 border border-border hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer"
+                >
+                  <h2 className="text-xl font-semibold text-primary mb-0 text-center">
+                    График проведения государственной итоговой аттестации выпускников ТТЖТ - филиала РГУПС с 15.06.2025 г. по 28.06.2025
                   </h2>
-                </div>
+                </a>
 
                 {/* Программы ГИА */}
                 <div className="bg-white rounded-lg p-6">
