@@ -1,4 +1,4 @@
-import { BASE_URL, TEACHERS_ENDPOINT } from './config';
+import { BASE_URL } from './config'; // Убираем TEACHERS_ENDPOINT из импорта
 import type { Teacher } from './config';
 
 const getAuthHeaders = () => {
@@ -17,7 +17,8 @@ export interface CreateTeacherPayload {
 
 export const teachersApi = {
   getAll: async (): Promise<Teacher[]> => {
-    const response = await fetch(`${BASE_URL}${TEACHERS_ENDPOINT}`, {
+    // --- ИЗМЕНЕНИЕ: Используем правильный URL ---
+    const response = await fetch(`${BASE_URL}/admin/teachers`, {
       headers: getAuthHeaders(),
     });
 
@@ -29,7 +30,8 @@ export const teachersApi = {
   },
 
   create: async (payload: CreateTeacherPayload): Promise<Teacher> => {
-    const response = await fetch(`${BASE_URL}${TEACHERS_ENDPOINT}`, {
+    // --- ИЗМЕНЕНИЕ: Используем правильный URL ---
+    const response = await fetch(`${BASE_URL}/admin/teachers`, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(payload),
@@ -44,7 +46,8 @@ export const teachersApi = {
   },
 
   delete: async (id: number): Promise<void> => {
-    const response = await fetch(`${BASE_URL}${TEACHERS_ENDPOINT}/${id}`, {
+    // --- ИЗМЕНЕНИЕ: Используем правильный URL ---
+    const response = await fetch(`${BASE_URL}/admin/teachers/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });

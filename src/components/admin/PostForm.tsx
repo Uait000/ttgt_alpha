@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { postsApi, type CreatePostPayload } from '@/api/posts';
 import { teachersApi } from '@/api/teachers';
-import type { NewsPost } from '@/api/config';
+import type { NewsPost, Teacher } from '@/api/config';
 import { POST_TAGS } from '@/api/config';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,7 +39,7 @@ interface PostFormProps {
 
 export default function PostForm({ open, onClose, onSuccess, editPost }: PostFormProps) {
   const [loading, setLoading] = useState(false);
-  const [teachers, setTeachers] = useState<string[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]); 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const { toast } = useToast();
 
@@ -58,10 +58,10 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
     const loadTeachers = async () => {
       try {
         const teachersList = await teachersApi.getAll();
-        const teacherNames = teachersList.map(t => t.name);
-        setTeachers(teacherNames);
+        setTeachers(teachersList);
       } catch (error) {
         console.error('Failed to load teachers:', error);
+        toast({ title: 'Ошибка', description: 'Не удалось загрузить список авторов', variant: 'destructive' });
       }
     };
     loadTeachers();
@@ -85,7 +85,7 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
       setFormData({
         title: '',
         content: '',
-        author: teachers.length > 0 ? teachers[0] : '',
+        author: teachers.length > 0 ? teachers[0].name : '',
         type: 0,
         image_urls: [],
         date: new Date().toISOString(),
@@ -99,11 +99,7 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
     e.preventDefault();
 
     if (!(formData.title || '').trim() || !(formData.content || '').trim() || !formData.author) {
-      toast({
-        title: 'Ошибка',
-        description: 'Пожалуйста, заполните все обязательные поля (*)',
-        variant: 'destructive',
-      });
+      toast({ title: 'Ошибка', description: 'Пожалуйста, заполните все обязательные поля (*)', variant: 'destructive' });
       return;
     }
 
@@ -120,25 +116,15 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
 
       if (editPost) {
         await postsApi.update(editPost.id, payload as CreatePostPayload, imageFiles.length > 0 ? imageFiles : undefined);
-        toast({
-          title: 'Успешно',
-          description: 'Пост обновлен',
-        });
+        toast({ title: 'Успешно', description: 'Пост обновлен' });
       } else {
         await postsApi.create(payload as CreatePostPayload, imageFiles.length > 0 ? imageFiles : undefined);
-        toast({
-          title: 'Успешно',
-          description: 'Пост создан',
-        });
+        toast({ title: 'Успешно', description: 'Пост создан' });
       }
 
       onSuccess();
     } catch (error) {
-      toast({
-        title: 'Ошибка',
-        description: error instanceof Error ? error.message : 'Не удалось сохранить пост',
-        variant: 'destructive',
-      });
+      toast({ title: 'Ошибка', description: error instanceof Error ? error.message : 'Не удалось сохранить пост', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -148,49 +134,28 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {editPost ? 'Редактировать пост' : 'Создать новый пост'}
-          </DialogTitle>
-          <DialogDescription>
-            Заполните форму для {editPost ? 'обновления' : 'создания'} поста
-          </DialogDescription>
+          <DialogTitle>{editPost ? 'Редактировать пост' : 'Создать новый пост'}</DialogTitle>
+          <DialogDescription>Заполните форму для {editPost ? 'обновления' : 'создания'} поста</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Заголовок *</Label>
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Введите заголовок поста"
-              required
-            />
+            <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Введите заголовок поста" required />
           </div>
 
-          <RichTextEditor
-            value={formData.content}
-            onChange={(value) => setFormData({ ...formData, content: value })}
-            label="Основной текст *"
-            placeholder="Полный текст поста"
-            required
-            rows={8}
-          />
+          <RichTextEditor value={formData.content} onChange={(value) => setFormData({ ...formData, content: value })} label="Основной текст *" placeholder="Полный текст поста" required rows={8} />
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="author">Автор *</Label>
-              <Select
-                value={formData.author}
-                onValueChange={(value) => setFormData({ ...formData, author: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите автора" />
-                </SelectTrigger>
+              <Select value={formData.author} onValueChange={(value) => setFormData({ ...formData, author: value })}>
+                <SelectTrigger><SelectValue placeholder="Выберите автора" /></SelectTrigger>
                 <SelectContent>
+                  {/* --- ИЗМЕНЕНИЕ №1: Добавляем уникальный key --- */}
                   {teachers.map((teacher) => (
-                    <SelectItem key={teacher} value={teacher}>
-                      {teacher}
+                    <SelectItem key={teacher.id} value={teacher.name}>
+                      {teacher.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -199,14 +164,10 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
 
             <div className="space-y-2">
               <Label htmlFor="type">Тип поста *</Label>
-              <Select
-                value={formData.type.toString()}
-                onValueChange={(value) => setFormData({ ...formData, type: parseInt(value) })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите тип" />
-                </SelectTrigger>
+              <Select value={formData.type.toString()} onValueChange={(value) => setFormData({ ...formData, type: parseInt(value) })}>
+                <SelectTrigger><SelectValue placeholder="Выберите тип" /></SelectTrigger>
                 <SelectContent>
+                  {/* --- ИЗМЕНЕНИЕ №2: Добавляем уникальный key --- */}
                   {POST_TAGS.map((tag, index) => (
                     <SelectItem key={index} value={index.toString()}>
                       {tag}
@@ -221,39 +182,22 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
             <Label>Дата публикации *</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDate ? format(selectedDate, 'PPP', { locale: ru }) : 'Выберите дату'}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
-                  initialFocus
-                />
+                <Calendar mode="single" selected={selectedDate} onSelect={(date) => date && setSelectedDate(date)} initialFocus />
               </PopoverContent>
             </Popover>
           </div>
 
-          <MultipleFileUpload
-            value={formData.image_urls}
-            onChange={(files) => setImageFiles(files)}
-            label="Изображения"
-            maxFiles={20}
-          />
+          <MultipleFileUpload value={formData.image_urls} onChange={(files) => setImageFiles(files)} label="Изображения" maxFiles={20} />
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Отмена
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Сохранение...' : editPost ? 'Обновить' : 'Создать'}
-            </Button>
+            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>Отмена</Button>
+            <Button type="submit" disabled={loading}>{loading ? 'Сохранение...' : editPost ? 'Обновить' : 'Создать'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
