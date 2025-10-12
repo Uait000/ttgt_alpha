@@ -37,6 +37,13 @@ interface PostFormProps {
   editPost?: NewsPost | null;
 }
 
+// --- ИЗМЕНЕНИЕ №1: Добавляем функцию для форматирования имени ---
+const formatTeacherName = (teacher: Teacher) => {
+  if (!teacher || !teacher.second_name || !teacher.first_name) return '';
+  // Собираем ФИО в формате "Фамилия И. О."
+  return `${teacher.second_name} ${teacher.first_name[0]}. ${teacher.middle_name ? teacher.middle_name[0] + '.' : ''}`;
+};
+
 export default function PostForm({ open, onClose, onSuccess, editPost }: PostFormProps) {
   const [loading, setLoading] = useState(false);
   const [teachers, setTeachers] = useState<Teacher[]>([]); 
@@ -70,7 +77,6 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
   useEffect(() => {
     if (editPost) {
       const postDate = new Date(editPost.publish_date * 1000);
-
       setFormData({
         title: editPost.title,
         content: editPost.body,
@@ -85,7 +91,8 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
       setFormData({
         title: '',
         content: '',
-        author: teachers.length > 0 ? teachers[0].name : '',
+        // --- ИЗМЕНЕНИЕ №2: Используем нашу новую функцию для установки автора по умолчанию ---
+        author: teachers.length > 0 ? formatTeacherName(teachers[0]) : '',
         type: 0,
         image_urls: [],
         date: new Date().toISOString(),
@@ -152,12 +159,15 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
               <Select value={formData.author} onValueChange={(value) => setFormData({ ...formData, author: value })}>
                 <SelectTrigger><SelectValue placeholder="Выберите автора" /></SelectTrigger>
                 <SelectContent>
-                  {/* --- ИЗМЕНЕНИЕ №1: Добавлен уникальный key --- */}
-                  {teachers.map((teacher) => (
-                    <SelectItem key={teacher.id} value={teacher.name}>
-                      {teacher.name}
-                    </SelectItem>
-                  ))}
+                  {/* --- ИЗМЕНЕНИЕ №3: Форматируем имя для каждого элемента списка --- */}
+                  {teachers.map((teacher) => {
+                    const formattedName = formatTeacherName(teacher);
+                    return (
+                      <SelectItem key={teacher.id} value={formattedName}>
+                        {formattedName}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -167,7 +177,6 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
               <Select value={formData.type.toString()} onValueChange={(value) => setFormData({ ...formData, type: parseInt(value) })}>
                 <SelectTrigger><SelectValue placeholder="Выберите тип" /></SelectTrigger>
                 <SelectContent>
-                  {/* --- ИЗМЕНЕНИЕ №2: Добавлен уникальный key --- */}
                   {POST_TAGS.map((tag, index) => (
                     <SelectItem key={index} value={index.toString()}>
                       {tag}

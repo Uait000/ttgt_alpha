@@ -43,14 +43,20 @@ export interface Vacancy {
   description?: string;
 }
 
+// --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+// Заменяем одно поле 'name' на три отдельных поля для имени, фамилии и отчества.
 export interface Teacher {
   id: number;
-  name: string;
+  first_name: string;
+  second_name: string;
+  middle_name?: string; // Знак '?' означает, что отчество может отсутствовать
   position?: string;
   department?: string;
 }
+// --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
 export interface Professional {
+  date: number;
   id: number;
   slug: string;
   title: string;
