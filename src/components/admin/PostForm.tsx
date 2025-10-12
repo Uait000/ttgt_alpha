@@ -152,7 +152,7 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
               <Select value={formData.author} onValueChange={(value) => setFormData({ ...formData, author: value })}>
                 <SelectTrigger><SelectValue placeholder="Выберите автора" /></SelectTrigger>
                 <SelectContent>
-                  {/* --- ИЗМЕНЕНИЕ №1: Добавляем уникальный key --- */}
+                  {/* --- ИЗМЕНЕНИЕ №1: Добавлен уникальный key --- */}
                   {teachers.map((teacher) => (
                     <SelectItem key={teacher.id} value={teacher.name}>
                       {teacher.name}
@@ -167,7 +167,7 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
               <Select value={formData.type.toString()} onValueChange={(value) => setFormData({ ...formData, type: parseInt(value) })}>
                 <SelectTrigger><SelectValue placeholder="Выберите тип" /></SelectTrigger>
                 <SelectContent>
-                  {/* --- ИЗМЕНЕНИЕ №2: Добавляем уникальный key --- */}
+                  {/* --- ИЗМЕНЕНИЕ №2: Добавлен уникальный key --- */}
                   {POST_TAGS.map((tag, index) => (
                     <SelectItem key={index} value={index.toString()}>
                       {tag}
