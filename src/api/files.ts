@@ -1,8 +1,8 @@
 import { BASE_URL } from './config';
 
-// --- ИЗМЕНЕНИЕ №1: Получаем ключ для ImgBB ---
-// Безопасно получаем ваш ключ из файла .env.local
-const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
+// --- ИЗМЕНЕНИЕ №1: Получаем ключи для Cloudinary ---
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('adminToken');
@@ -20,18 +20,19 @@ export interface FileInfo {
 }
 
 export const filesApi = {
-  // --- ИЗМЕНЕНИЕ №2: Функция upload переписана для ImgBB ---
+  // --- ИЗМЕНЕНИЕ №2: Функция upload переписана для Cloudinary ---
   upload: async (file: File): Promise<{ url: string }> => {
-    // Проверяем, что ключ существует, иначе выбрасываем понятную ошибку
-    if (!IMGBB_API_KEY) {
-      throw new Error('API-ключ для ImgBB не найден. Проверьте файл .env.local и перезапустите сервер.');
+    // Проверяем, что ключи существуют, иначе выбрасываем понятную ошибку
+    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
+      throw new Error('Ключи для Cloudinary не найдены. Проверьте файл .env.local и перезапустите сервер.');
     }
 
     const formData = new FormData();
-    formData.append('image', file); // ImgBB ожидает поле с именем 'image'
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); // Добавляем обязательный preset
 
     const response = await fetch(
-      `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`,
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
       {
         method: 'POST',
         body: formData,
@@ -40,13 +41,13 @@ export const filesApi = {
 
     const data = await response.json();
 
-    if (!response.ok || !data.success) {
-      console.error('Ошибка от ImgBB:', data);
-      throw new Error(data?.error?.message || 'Не удалось загрузить файл на ImgBB.');
+    if (!response.ok) {
+      console.error('Ошибка от Cloudinary:', data);
+      throw new Error(data?.error?.message || 'Не удалось загрузить файл на Cloudinary.');
     }
     
-    // ImgBB возвращает URL в поле data.url
-    return { url: data.data.url }; 
+    // Cloudinary возвращает URL в поле 'secure_url'
+    return { url: data.secure_url }; 
   },
   // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
