@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BASE_URL, POSTS_ENDPOINT, NewsPost } from '@/api/config';
 
-// Reintroducing the default category, which the public endpoint likely requires
+// The public endpoint likely requires this filter for validation
 const DEFAULT_CATEGORY = 0; 
 
 export const useFetchNews = () => {
@@ -26,10 +26,9 @@ export const useFetchNews = () => {
             throw new Error('Limit and offset must be valid numbers.');
         }
         
-        // ↓↓↓ REVERTING: Reintroducing the category filter to fix 422 ↓↓↓
+        // Final Correct URL construction using the fixed POSTS_ENDPOINT
       const url = `${BASE_URL}${POSTS_ENDPOINT}?limit=${safeLimit}&offset=${safeOffset}&category=${DEFAULT_CATEGORY}`;
-        // ↑↑↑ END OF REVERT ↑↑↑
-
+        
       const response = await fetch(url);
 
       if (!response.ok) {
