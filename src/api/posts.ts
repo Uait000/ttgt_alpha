@@ -64,21 +64,28 @@ export const postsApi = {
         .map(result => result?.url)
         .filter((url): url is string => !!url);
     }
-    
-    // ↓↓↓ ИЗМЕНЕНИЕ: УДАЛЕНО ПОЛЕ slug ИЗ finalPayload ↓↓↓
+    
+    // ↓↓↓ ИСПРАВЛЕНИЕ: Гарантируем, что category и type — это числа. ↓↓↓
+    const category = Number(payload.category);
+    const type = Number(payload.type);
+
+    if (isNaN(category) || isNaN(type)) {
+        throw new Error('Поля "Категория" и "Тип поста" должны быть выбраны.');
+    }
+    
     const finalPayload = {
       title: payload.title,
       body: payload.content,
       publish_date: Math.floor(new Date(payload.date).getTime() / 1000),
       author: payload.author,
-      category: payload.category, 
-      type: payload.type,
-      status: 0, 
+      category: category, // Используем проверенное числовое значение
+      type: type,         // Используем проверенное числовое значение
+      status: 1, 
       images: imageUrls,
     };
-    // ↑↑↑ КОНЕЦ ИЗМЕНЕНИЯ ↑↑↑
+    // ↑↑↑ КОНЕЦ ИСПРАВЛЕНИЯ ↑↑↑
 
-    console.log('Отправка на сервер:', JSON.stringify(finalPayload, null, 2));
+    console.log('Отправляемый Payload:', JSON.stringify(finalPayload, null, 2));
 
     const response = await fetch(`${BASE_URL}/admin/posts/`, {
       method: 'POST',
@@ -87,12 +94,15 @@ export const postsApi = {
     });
 
     if (!response.ok) {
-        if (response.status === 409) {
-          throw new ConflictError('Пост с таким заголовком, вероятно, уже существует. Пожалуйста, измените заголовок.');
+        const errorDetails = await response.json().catch(() => ({ detail: 'Не удалось прочитать ошибку сервера' }));
+        
+        if (response.status === 409) {
+            console.error('Ошибка 409 (Конфликт). Ответ сервера:', errorDetails);
+            throw new ConflictError('Пост с таким заголовком, вероятно, уже существует. Пожалуйста, измените заголовок.');
         }
-        const errorDetails = await response.json().catch(() => ({ detail: 'Не удалось прочитать ошибку сервера' }));
-        const errorMessage = errorDetails.detail || 'Ошибка данных запроса.';
-        throw new Error(errorMessage);
+        
+        const errorMessage = errorDetails.detail || 'Ошибка данных запроса.';
+        throw new Error(errorMessage);
     }
     return response.json();
   },
@@ -106,8 +116,11 @@ export const postsApi = {
     if (payload.content) finalPayload.body = payload.content;
     if (payload.date) finalPayload.publish_date = Math.floor(new Date(payload.date).getTime() / 1000);
     if (payload.author) finalPayload.author = payload.author;
-    if (payload.type !== undefined) finalPayload.type = payload.type;
-    if (payload.category !== undefined) finalPayload.category = payload.category;
+    
+    // ↓↓↓ ИСПРАВЛЕНИЕ: Приведение к числу в update ↓↓↓
+    if (payload.type !== undefined) finalPayload.type = Number(payload.type);
+    if (payload.category !== undefined) finalPayload.category = Number(payload.category);
+    // ↑↑↑ КОНЕЦ ИСПРАВЛЕНИЯ ↑↑↑
 
     let imageUrls: string[] = payload.image_urls || [];
     if (imageFiles && imageFiles.length > 0) {
