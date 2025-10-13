@@ -11,22 +11,18 @@ const NewsCard = ({ post, onReadMore }: NewsCardProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
-  // --- ИЗМЕНЕНИЕ №1: Универсальная обработка изображений ---
-  // Создаем массив картинок, даже если пришла только одна.
-  // Это позволяет карусели работать и с одним, и с несколькими изображениями.
+  // Универсальная обработка: создаем массив картинок, даже если пришла только одна.
   const images = Array.isArray(post.image_urls) && post.image_urls.length > 0
     ? post.image_urls
     : post.image_url ? [post.image_url] : [];
   const hasMultipleImages = images.length > 1;
 
-  // --- ИЗМЕНЕНИЕ №2: Создаем краткое описание (snippet) из полного текста (body) ---
-  // Убираем HTML-теги для чистого текста и обрезаем до 100 символов.
+  // Создаем краткое описание из полного текста, убирая HTML-теги.
   const snippet = (post.body || '').replace(/<[^>]*>?/gm, '').substring(0, 100) + '...';
 
-  // --- ИЗМЕНЕНИЕ №3: Добавляем функцию для форматирования даты ---
+  // Функция для форматирования даты из Unix timestamp (секунд).
   const formatDate = (dateInSeconds: number) => {
-    // Unix timestamp (в секундах) нужно умножить на 1000 для JS.
-    if (!dateInSeconds) return ''; // Защита от ошибки, если дата не пришла
+    if (!dateInSeconds) return '';
     const date = new Date(dateInSeconds * 1000);
     return date.toLocaleDateString('ru-RU', {
       year: 'numeric',
@@ -35,7 +31,6 @@ const NewsCard = ({ post, onReadMore }: NewsCardProps) => {
     });
   };
 
-  // --- Функции для управления каруселью и модальным окном (без изменений) ---
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (images.length > 1) {
@@ -52,7 +47,7 @@ const NewsCard = ({ post, onReadMore }: NewsCardProps) => {
 
   const openImageModal = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (images.length > 0) { // Открываем, только если есть что показывать
+    if (images.length > 0) {
       setIsImageModalOpen(true);
     }
   };
@@ -77,15 +72,40 @@ const NewsCard = ({ post, onReadMore }: NewsCardProps) => {
       <article className="news-card">
         <div className="relative group" onClick={openImageModal}>
           <img
-            src={images[currentImageIndex] || '/placeholder.png'} // Заглушка, если нет изображений
+            src={images[currentImageIndex] || '/placeholder.png'}
             alt={post.title}
             className="w-full h-48 object-cover cursor-pointer"
           />
+
+          {/* --- ИЗМЕНЕНИЕ: Восстановлен код карусели --- */}
           {hasMultipleImages && (
             <>
-              {/* Кнопки и индикаторы карусели (код без изменений) */}
+              <button
+                onClick={prevImage}
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={nextImage}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1.5 z-10">
+                {images.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      index === currentImageIndex ? 'bg-white' : 'bg-white/60'
+                    }`}
+                  />
+                ))}
+              </div>
             </>
           )}
+          {/* --- КОНЕЦ ИЗМЕНЕНИЯ --- */}
+
           {images.length > 0 && (
             <div className="absolute top-2 right-2 bg-white/80 hover:bg-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10">
               <ZoomIn className="w-4 h-4" />
@@ -101,10 +121,9 @@ const NewsCard = ({ post, onReadMore }: NewsCardProps) => {
             {post.title}
           </h3>
           <p className="text-muted-foreground mb-4 line-clamp-3">
-            {snippet} {/* <-- ИЗМЕНЕНИЕ №4: Используем сгенерированный snippet */}
+            {snippet}
           </p>
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-            {/* --- ИЗМЕНЕНИЕ №5: Используем правильное поле и функцию для даты --- */}
             <span>{formatDate(post.publish_date)}</span>
             <span>{post.author}</span>
           </div>
@@ -142,11 +161,25 @@ const NewsCard = ({ post, onReadMore }: NewsCardProps) => {
             >
               <X className="w-6 h-6" />
             </button>
+
+            {/* --- ИЗМЕНЕНИЕ: Восстановлен код карусели для модального окна --- */}
             {hasMultipleImages && (
               <>
-                {/* Кнопки навигации модального окна (код без изменений) */}
+                <button
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full transition-colors"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 text-white p-3 rounded-full transition-colors"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
               </>
             )}
+            {/* --- КОНЕЦ ИЗМЕНЕНИЯ --- */}
           </div>
         </div>
       )}

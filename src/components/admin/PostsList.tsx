@@ -3,14 +3,7 @@ import { postsApi } from '@/api/posts';
 import type { NewsPost } from '@/api/config';
 import { POST_TAGS } from '@/api/config';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -30,13 +23,23 @@ export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }
     try {
       setLoading(true);
       const data = await postsApi.getAll({ limit: 100, offset: 0 });
-      setPosts(data);
+
+      // Добавляем проверку, чтобы убедиться, что от сервера пришел именно массив.
+      if (Array.isArray(data)) {
+        setPosts(data);
+      } else {
+        console.error("API did not return an array for posts:", data);
+        setPosts([]); // Устанавливаем пустой массив, чтобы избежать ошибки
+      }
+      
     } catch (error) {
       toast({
         title: 'Ошибка',
         description: error instanceof Error ? error.message : 'Не удалось загрузить посты',
         variant: 'destructive',
       });
+      // В случае ошибки также устанавливаем пустой массив.
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -46,15 +49,11 @@ export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }
     loadPosts();
   }, [refreshTrigger]);
 
-  // --- ИЗМЕНЕНИЕ №1 ---
-  // Функция теперь правильно работает с Unix timestamp (секунды)
   const formatDate = (dateInSeconds: number) => {
-    // Умножаем на 1000, чтобы получить миллисекунды
+    if (!dateInSeconds) return '';
     const date = new Date(dateInSeconds * 1000); 
     return date.toLocaleDateString('ru-RU', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+      year: 'numeric', month: 'long', day: 'numeric',
     });
   };
 
@@ -71,7 +70,6 @@ export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }
           Создать новый пост
         </Button>
       </div>
-
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
@@ -94,15 +92,9 @@ export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }
             ) : (
               posts.map((post) => (
                 <TableRow key={post.id}>
-                  <TableCell className="font-medium max-w-md truncate">
-                    {post.title}
-                  </TableCell>
+                  <TableCell className="font-medium max-w-md truncate">{post.title}</TableCell>
                   <TableCell>{post.author}</TableCell>
-
-                  {/* --- ИЗМЕНЕНИЕ №2 --- */}
-                  {/* Используем правильное поле `publish_date` вместо `date` */}
                   <TableCell>{formatDate(post.publish_date)}</TableCell>
-
                   <TableCell>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {POST_TAGS[post.type] || 'Неизвестно'}
@@ -111,23 +103,11 @@ export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }
                   <TableCell>{post.views}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEdit(post)}
-                        className="gap-1"
-                      >
-                        <Pencil className="h-4 w-4" />
-                        Редактировать
+                      <Button variant="ghost" size="sm" onClick={() => onEdit(post)} className="gap-1">
+                        <Pencil className="h-4 w-4" /> Редактировать
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDelete(post)}
-                        className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Удалить
+                      <Button variant="ghost" size="sm" onClick={() => onDelete(post)} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+                        <Trash2 className="h-4 w-4" /> Удалить
                       </Button>
                     </div>
                   </TableCell>
