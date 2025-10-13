@@ -1,43 +1,59 @@
 import { useState, useEffect } from 'react';
 import { BASE_URL, POSTS_ENDPOINT, NewsPost } from '@/api/config';
 
+// Reintroducing the default category, which the public endpoint likely requires
+const DEFAULT_CATEGORY = 0; 
+
 export const useFetchNews = () => {
-  const [posts, setPosts] = useState<NewsPost[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [posts, setPosts] = useState<NewsPost[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadMore = async (limit: number = 10, currentOffset: number) => {
-    if (loading) return;
+  const loadMore = async (limit: number = 10, currentOffset: number) => {
+    if (loading) return;
 
-    setLoading(true);
-    setError(null);
+    setLoading(true);
+    setError(null);
 
-    try {
-      const url = `${BASE_URL}${POSTS_ENDPOINT}?limit=${limit}&offset=${currentOffset}`;
-      const response = await fetch(url);
+    try {
+        // Guaranteeing that parameters are safe numbers
+        const safeLimit = Number(limit);
+        const safeOffset = Number(currentOffset);
+        
+        if (isNaN(safeLimit) || isNaN(safeOffset)) {
+            throw new Error('Limit and offset must be valid numbers.');
+        }
+        
+        // ↓↓↓ REVERTING: Reintroducing the category filter to fix 422 ↓↓↓
+      const url = `${BASE_URL}${POSTS_ENDPOINT}?limit=${safeLimit}&offset=${safeOffset}&category=${DEFAULT_CATEGORY}`;
+        // ↑↑↑ END OF REVERT ↑↑↑
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch news: ${response.statusText}`);
-      }
+      const response = await fetch(url);
 
-      const newPosts: NewsPost[] = await response.json();
+      if (!response.ok) {
+            const errorDetails = await response.json().catch(() => ({ detail: response.statusText }));
+            console.error('API Error:', errorDetails);
+        throw new Error(`Failed to fetch news: ${errorDetails.detail || response.statusText}`);
+      }
 
-      setPosts(prev => [...prev, ...newPosts]);
-      setOffset(currentOffset + newPosts.length);
-      setHasMore(newPosts.length === limit);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      console.error('Error loading news:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      const newPosts: NewsPost[] = await response.json();
 
-  useEffect(() => {
-    loadMore(9, 0);
-  }, []);
+      setPosts(prev => [...prev, ...newPosts]);
+      setOffset(currentOffset + newPosts.length);
+      setHasMore(newPosts.length === limit);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error loading news:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return { posts, loading, offset, hasMore, loadMore, error };
+  useEffect(() => {
+    loadMore(9, 0);
+  }, []);
+
+  return { posts, loading, offset, hasMore, loadMore, error };
 };
