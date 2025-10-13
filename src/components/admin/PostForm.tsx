@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { postsApi, type CreatePostPayload } from '@/api/posts';
+// ИЗМЕНЕНИЕ: Импортируем наш новый класс ошибки
+import { postsApi, type CreatePostPayload, ConflictError } from '@/api/posts';
 import { teachersApi } from '@/api/teachers';
 import type { NewsPost, Teacher } from '@/api/config';
 import { POST_TAGS } from '@/api/config';
@@ -37,17 +38,12 @@ interface PostFormProps {
   editPost?: NewsPost | null;
 }
 
-// --- ИЗМЕНЕНИЕ №1: Добавляем функцию для форматирования имени ---
-const formatTeacherName = (teacher: Teacher) => {
-  if (!teacher || !teacher.second_name || !teacher.first_name) return '';
-  // Собираем ФИО в формате "Фамилия И. О."
-  return `${teacher.second_name} ${teacher.first_name[0]}. ${teacher.middle_name ? teacher.middle_name[0] + '.' : ''}`;
-};
-
 export default function PostForm({ open, onClose, onSuccess, editPost }: PostFormProps) {
   const [loading, setLoading] = useState(false);
-  const [teachers, setTeachers] = useState<Teacher[]>([]); 
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  // ИЗМЕНЕНИЕ: Добавляем состояние для хранения ошибки заголовка
+  const [titleError, setTitleError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState<CreatePostPayload>({
@@ -57,6 +53,7 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
     type: 0,
     image_urls: [],
     date: new Date().toISOString(),
+    category: 0,
   });
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -64,7 +61,7 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
   useEffect(() => {
     const loadTeachers = async () => {
       try {
-        const teachersList = await teachersApi.getAll();
+        const teachersList = await teachersApi.getAll({ limit: 1000 });
         setTeachers(teachersList);
       } catch (error) {
         console.error('Failed to load teachers:', error);
@@ -72,9 +69,11 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
       }
     };
     loadTeachers();
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
+    // Сбрасываем ошибку при каждом открытии/изменении формы
+    setTitleError(null); 
     if (editPost) {
       const postDate = new Date(editPost.publish_date * 1000);
       setFormData({
@@ -84,6 +83,7 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
         type: editPost.type,
         image_urls: editPost.image_urls || [],
         date: postDate.toISOString(),
+        category: 0,
       });
       setSelectedDate(postDate);
       setImageFiles([]);
@@ -91,11 +91,11 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
       setFormData({
         title: '',
         content: '',
-        // --- ИЗМЕНЕНИЕ №2: Используем нашу новую функцию для установки автора по умолчанию ---
-        author: teachers.length > 0 ? formatTeacherName(teachers[0]) : '',
+        author: teachers.length > 0 ? teachers[0].initials : '',
         type: 0,
         image_urls: [],
         date: new Date().toISOString(),
+        category: 0,
       });
       setSelectedDate(new Date());
       setImageFiles([]);
@@ -104,6 +104,8 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // ИЗМЕНЕНИЕ: Сбрасываем ошибку перед новой попыткой отправки
+    setTitleError(null);
 
     if (!(formData.title || '').trim() || !(formData.content || '').trim() || !formData.author) {
       toast({ title: 'Ошибка', description: 'Пожалуйста, заполните все обязательные поля (*)', variant: 'destructive' });
@@ -112,26 +114,30 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
 
     setLoading(true);
     try {
-      const payload: Partial<CreatePostPayload> = {
+      const payload: CreatePostPayload = {
         ...formData,
         date: selectedDate.toISOString(),
       };
 
       if (imageFiles.length > 0) {
-        delete payload.image_urls;
+        delete (payload as Partial<CreatePostPayload>).image_urls;
       }
 
       if (editPost) {
-        await postsApi.update(editPost.id, payload as CreatePostPayload, imageFiles.length > 0 ? imageFiles : undefined);
+        await postsApi.update(editPost.id, payload, imageFiles.length > 0 ? imageFiles : undefined);
         toast({ title: 'Успешно', description: 'Пост обновлен' });
       } else {
-        await postsApi.create(payload as CreatePostPayload, imageFiles.length > 0 ? imageFiles : undefined);
+        await postsApi.create(payload, imageFiles.length > 0 ? imageFiles : undefined);
         toast({ title: 'Успешно', description: 'Пост создан' });
       }
-
       onSuccess();
     } catch (error) {
-      toast({ title: 'Ошибка', description: error instanceof Error ? error.message : 'Не удалось сохранить пост', variant: 'destructive' });
+      // ИЗМЕНЕНИЕ: Ловим нашу кастомную ошибку и показываем ее под полем
+      if (error instanceof ConflictError) {
+        setTitleError(error.message);
+      } else {
+        toast({ title: 'Ошибка', description: error instanceof Error ? error.message : 'Не удалось сохранить пост', variant: 'destructive' });
+      }
     } finally {
       setLoading(false);
     }
@@ -149,25 +155,25 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
           <div className="space-y-2">
             <Label htmlFor="title">Заголовок *</Label>
             <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Введите заголовок поста" required />
+            {/* ИЗМЕНЕНИЕ: Отображаем текст ошибки, если она есть */}
+            {titleError && (
+              <p className="text-sm font-medium text-destructive">{titleError}</p>
+            )}
           </div>
 
           <RichTextEditor value={formData.content} onChange={(value) => setFormData({ ...formData, content: value })} label="Основной текст *" placeholder="Полный текст поста" required rows={8} />
-
+          
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="author">Автор *</Label>
               <Select value={formData.author} onValueChange={(value) => setFormData({ ...formData, author: value })}>
                 <SelectTrigger><SelectValue placeholder="Выберите автора" /></SelectTrigger>
                 <SelectContent>
-                  {/* --- ИЗМЕНЕНИЕ №3: Форматируем имя для каждого элемента списка --- */}
-                  {teachers.map((teacher) => {
-                    const formattedName = formatTeacherName(teacher);
-                    return (
-                      <SelectItem key={teacher.id} value={formattedName}>
-                        {formattedName}
-                      </SelectItem>
-                    );
-                  })}
+                  {teachers.map((teacher) => (
+                    <SelectItem key={teacher.id} value={teacher.initials}>
+                      {teacher.initials}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

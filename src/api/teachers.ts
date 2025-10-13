@@ -1,4 +1,4 @@
-import { BASE_URL } from './config'; // Убираем TEACHERS_ENDPOINT из импорта
+import { BASE_URL } from './config';
 import type { Teacher } from './config';
 
 const getAuthHeaders = () => {
@@ -16,9 +16,17 @@ export interface CreateTeacherPayload {
 }
 
 export const teachersApi = {
-  getAll: async (): Promise<Teacher[]> => {
-    // --- ИЗМЕНЕНИЕ: Используем правильный URL ---
-    const response = await fetch(`${BASE_URL}/admin/teachers`, {
+  // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+  // Добавляем возможность передавать параметры, такие как limit
+  getAll: async (params?: { limit?: number; offset?: number }): Promise<Teacher[]> => {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+    
+    // Добавляем параметры к URL
+    const url = `${BASE_URL}/admin/teachers?${queryParams.toString()}`;
+
+    const response = await fetch(url, {
       headers: getAuthHeaders(),
     });
 
@@ -28,9 +36,9 @@ export const teachersApi = {
 
     return response.json();
   },
+  // --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
   create: async (payload: CreateTeacherPayload): Promise<Teacher> => {
-    // --- ИЗМЕНЕНИЕ: Используем правильный URL ---
     const response = await fetch(`${BASE_URL}/admin/teachers`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -46,7 +54,6 @@ export const teachersApi = {
   },
 
   delete: async (id: number): Promise<void> => {
-    // --- ИЗМЕНЕНИЕ: Используем правильный URL ---
     const response = await fetch(`${BASE_URL}/admin/teachers/${id}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),

@@ -1,12 +1,9 @@
 import { BASE_URL } from './config';
 
-// --- ИЗМЕНЕНИЕ №1: Получаем ключи для Cloudinary ---
-const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-
 const getAuthHeaders = () => {
   const token = localStorage.getItem('adminToken');
   return {
+    // Content-Type будет установлен браузером автоматически для FormData/файла
     ...(token ? { 'X-Authorization': token } : {}),
   };
 };
@@ -20,34 +17,33 @@ export interface FileInfo {
 }
 
 export const filesApi = {
-  // --- ИЗМЕНЕНИЕ №2: Функция upload переписана для Cloudinary ---
+  // --- НАЧАЛО ИЗМЕНЕНИЙ ---
+  // Функция upload переписана для работы с вашим собственным API
   upload: async (file: File): Promise<{ url: string }> => {
-    // Проверяем, что ключи существуют, иначе выбрасываем понятную ошибку
-    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
-      throw new Error('Ключи для Cloudinary не найдены. Проверьте файл .env.local и перезапустите сервер.');
-    }
+    // Формируем URL с именем файла в query-параметрах, как просил разработчик
+    const url = `${BASE_URL}/files?filename=${encodeURIComponent(file.name)}`;
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET); // Добавляем обязательный preset
-
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    );
-
-    const data = await response.json();
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+        // Указываем тип контента, который отправляем. Это важно.
+        'Content-Type': file.type || 'application/octet-stream',
+      },
+      // Отправляем тело файла как есть (бинарные данные)
+      body: file,
+    });
 
     if (!response.ok) {
-      console.error('Ошибка от Cloudinary:', data);
-      throw new Error(data?.error?.message || 'Не удалось загрузить файл на Cloudinary.');
+      const errorData = await response.json().catch(() => ({ detail: 'Не удалось загрузить файл.' }));
+      console.error('Ошибка при загрузке файла:', errorData);
+      throw new Error(errorData.detail || 'Не удалось загрузить файл.');
     }
+
+    const data = await response.json();
     
-    // Cloudinary возвращает URL в поле 'secure_url'
-    return { url: data.secure_url }; 
+    // Возвращаем ответ от вашего сервера (предполагается, что он содержит { url: '...' })
+    return data; 
   },
   // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 

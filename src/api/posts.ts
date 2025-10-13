@@ -2,171 +2,153 @@ import { BASE_URL } from './config';
 import type { NewsPost, NewsDetailPost } from './config';
 import { filesApi } from './files';
 
+// ... (ConflictError, getAuthHeaders, CreatePostPayload остаются без изменений)
+export class ConflictError extends Error {
+  constructor(message = 'Ресурс уже существует.') {
+    super(message);
+    this.name = 'ConflictError';
+  }
+}
+
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('adminToken');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { 'X-Authorization': token } : {}),
-  };
+  const token = localStorage.getItem('adminToken');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'X-Authorization': token } : {}),
+  };
 };
 
 export interface CreatePostPayload {
-  title: string;
-  content: string;
-  author: string;
-  type: number;
-  image_url?: string;
-  image_urls?: string[];
-  date: string;
+  title: string;
+  content: string;
+  author: string;
+  type: number;
+  image_urls?: string[];
+  date: string;
+  category: number;
 }
 
-const generateSlug = (text: string): string => {
-  const russianChars = 'абвгдеёжзийклмнопрстуфхцчшщъыьэюя';
-  const latinChars = 'a-b-v-g-d-e-jo-zh-z-i-j-k-l-m-n-o-p-r-s-t-u-f-h-c-ch-sh-shh---y--e-ju-ja'.split('-');
-  
-  const baseSlug = text.toLowerCase()
-    .trim()
-    .replace(/\s+/g, '-') 
-    .split('')
-    .map(char => {
-      const index = russianChars.indexOf(char);
-      return index >= 0 ? latinChars[index] : char;
-    })
-    .join('')
-    .replace(/[^a-z0-9-]/g, '') 
-    .replace(/-+/g, '-');
 
-  const truncatedSlug = baseSlug.slice(0, 9).replace(/-$/, '');
-  const uniqueSuffix = Date.now().toString().slice(-5);
-  return `${truncatedSlug}-${uniqueSuffix}`; 
-};
+// ↓↓↓ УДАЛЕНА ФУНКЦИЯ generateSlug, ТАК КАК SLUG НЕ ТРЕБУЕТСЯ В POST-ЗАПРОСЕ ↓↓↓
 
 
 export const postsApi = {
-  getAll: async (params?: { limit?: number; offset?: number }): Promise<NewsPost[]> => {
-    const queryParams = new URLSearchParams();
-    if (params?.limit) queryParams.append('limit', params.limit.toString());
-    if (params?.offset) queryParams.append('offset', params.offset.toString());
+  // ... (getAll и getBySlug остаются без изменений)
+  getAll: async (params?: { limit?: number; offset?: number }): Promise<NewsPost[]> => {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+    queryParams.append('category', '0');
+    const url = `${BASE_URL}/content/posts/?${queryParams.toString()}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch posts');
+    }
+    return response.json();
+  },
 
-    const url = `${BASE_URL}/content/news${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    const response = await fetch(url);
+  getBySlug: async (slug: string): Promise<NewsDetailPost> => {
+    const response = await fetch(`${BASE_URL}/content/posts/${slug}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch post');
+    }
+    return response.json();
+  },
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch posts');
-    }
+  create: async (payload: CreatePostPayload, imageFiles?: File[]): Promise<NewsPost> => {
+    let imageUrls: string[] = [];
+    if (imageFiles && imageFiles.length > 0) {
+      const uploadPromises = imageFiles.map(file => filesApi.upload(file));
+      const uploadResults = await Promise.all(uploadPromises);
+      imageUrls = uploadResults
+        .map(result => result?.url)
+        .filter((url): url is string => !!url);
+    }
+    
+    // ↓↓↓ ИЗМЕНЕНИЕ: УДАЛЕНО ПОЛЕ slug ИЗ finalPayload ↓↓↓
+    const finalPayload = {
+      title: payload.title,
+      body: payload.content,
+      publish_date: Math.floor(new Date(payload.date).getTime() / 1000),
+      author: payload.author,
+      category: payload.category, 
+      type: payload.type,
+      status: 0, 
+      images: imageUrls,
+    };
+    // ↑↑↑ КОНЕЦ ИЗМЕНЕНИЯ ↑↑↑
 
-    return response.json();
-  },
+    console.log('Отправка на сервер:', JSON.stringify(finalPayload, null, 2));
 
-  getBySlug: async (slug: string): Promise<NewsDetailPost> => {
-    const response = await fetch(`${BASE_URL}/content/news/${slug}`);
+    const response = await fetch(`${BASE_URL}/admin/posts/`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(finalPayload),
+    });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch post');
-    }
+    if (!response.ok) {
+        if (response.status === 409) {
+          throw new ConflictError('Пост с таким заголовком, вероятно, уже существует. Пожалуйста, измените заголовок.');
+        }
+        const errorDetails = await response.json().catch(() => ({ detail: 'Не удалось прочитать ошибку сервера' }));
+        const errorMessage = errorDetails.detail || 'Ошибка данных запроса.';
+        throw new Error(errorMessage);
+    }
+    return response.json();
+  },
+  
+  update: async (id: number, payload: Partial<CreatePostPayload>, imageFiles?: File[]) => {
+    const finalPayload: any = { status: 1 };
+    
+    if (payload.title) {
+        finalPayload.title = payload.title;
+    }
+    if (payload.content) finalPayload.body = payload.content;
+    if (payload.date) finalPayload.publish_date = Math.floor(new Date(payload.date).getTime() / 1000);
+    if (payload.author) finalPayload.author = payload.author;
+    if (payload.type !== undefined) finalPayload.type = payload.type;
+    if (payload.category !== undefined) finalPayload.category = payload.category;
 
-    return response.json();
-  },
+    let imageUrls: string[] = payload.image_urls || [];
+    if (imageFiles && imageFiles.length > 0) {
+      const uploadPromises = imageFiles.map(file => filesApi.upload(file));
+      const uploadResults = await Promise.all(uploadPromises);
+      const newImageUrls = uploadResults
+        .map(result => result?.url)
+        .filter((url): url is string => !!url);
+      imageUrls = [...imageUrls, ...newImageUrls];
+    }
+    finalPayload.images = imageUrls;
 
-  create: async (payload: CreatePostPayload, imageFiles?: File[]): Promise<NewsPost> => {
-    const finalPayload: any = { ...payload };
+    const response = await fetch(`${BASE_URL}/admin/posts/${id}`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(finalPayload),
+    });
 
-    finalPayload.body = finalPayload.content;
-    delete finalPayload.content;
-    finalPayload.status = 1;
+    if (!response.ok) {
+        if (response.status === 409) {
+          throw new ConflictError('Этот slug уже занят. Пожалуйста, измените заголовок.');
+        }
+        const errorDetails = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        console.error('API Error:', errorDetails);
+        throw new Error(errorDetails.detail || 'Ошибка данных запроса.');
+    }
+    return response.json();
+  },
 
-    finalPayload.slug = generateSlug(payload.title);
-    if (finalPayload.date) {
-      finalPayload.publish_date = Math.floor(new Date(finalPayload.date).getTime() / 1000);
-      delete finalPayload.date;
-    }
+  delete: async (id: number): Promise<void> => {
+    const response = await fetch(`${BASE_URL}/admin/posts/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to delete post' }));
+      throw new Error(error.message || 'Failed to delete post');
+    }
+  },
 
-    if (imageFiles && imageFiles.length > 0) {
-      // --- ИЗМЕНЕНИЕ ЗДЕСЬ (строка 87) ---
-      // Убираем второй аргумент 'news', так как filesApi.upload его больше не принимает
-      const uploadPromises = imageFiles.map(file => filesApi.upload(file));
-      const uploadResults = await Promise.all(uploadPromises);
-      finalPayload.image_urls = uploadResults.map(result => result.url);
-      delete finalPayload.image_url;
-    } else if (!finalPayload.image_urls || finalPayload.image_urls.length === 0) {
-      delete finalPayload.image_urls;
-    }
-
-    const response = await fetch(`${BASE_URL}/admin/news`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(finalPayload),
-    });
-
-    if (!response.ok) {
-        const errorDetails = await response.json().catch(() => ({ detail: 'Unknown error' }));
-        console.error('API Error:', errorDetails);
-        throw new Error(errorDetails.detail || 'Ошибка данных запроса.');
-    }
-
-    return response.json();
-  },
-
-  update: async (id: number, payload: Partial<CreatePostPayload>, imageFiles?: File[]): Promise<NewsPost> => {
-    const finalPayload: any = { ...payload };
-
-    if (finalPayload.content !== undefined) {
-      finalPayload.body = finalPayload.content;
-      delete finalPayload.content;
-    }
-
-    finalPayload.status = 1;
-
-    if (payload.title) {
-        finalPayload.slug = generateSlug(payload.title);
-    }
-    if (finalPayload.date) {
-      finalPayload.publish_date = Math.floor(new Date(finalPayload.date).getTime() / 1000);
-      delete finalPayload.date;
-    }
-
-    if (imageFiles && imageFiles.length > 0) {
-      // --- ИЗМЕНЕНИЕ ЗДЕСЬ (строка 129) ---
-      // Убираем второй аргумент 'news'
-      const uploadPromises = imageFiles.map(file => filesApi.upload(file));
-      const uploadResults = await Promise.all(uploadPromises);
-      finalPayload.image_urls = uploadResults.map(result => result.url);
-      delete finalPayload.image_url;
-    }
-
-    const response = await fetch(`${BASE_URL}/admin/news/${id}`, {
-      method: 'PATCH',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(finalPayload),
-    });
-
-    if (!response.ok) {
-        const errorDetails = await response.json().catch(() => ({ detail: 'Unknown error' }));
-        console.error('API Error:', errorDetails);
-        throw new Error(errorDetails.detail || 'Ошибка данных запроса.');
-    }
-
-    return response.json();
-  },
-
-  delete: async (id: number): Promise<void> => {
-    const response = await fetch(`${BASE_URL}/admin/news/${id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Failed to delete post' }));
-      throw new Error(error.message || 'Failed to delete post');
-    }
-  },
-
-  getAuthors: async (): Promise<string[]> => {
-    return [
-      'Администрация',
-      'Приемная комиссия',
-      'Учебный отдел',
-      'Воспитательный отдел',
-    ];
-  },
+  getAuthors: async (): Promise<string[]> => {
+    return ['Администрация', 'Приемная комиссия', 'Учебный отдел', 'Воспитательный отдел'];
+  },
 };
