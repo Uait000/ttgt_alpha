@@ -173,75 +173,60 @@ const NewsList = () => {
             className="bg-white rounded-xl shadow-2xl max-w-4xl max-h-[90vh] overflow-y-auto w-full relative"
             onClick={(e) => e.stopPropagation()}
           >
-            {getModalImages().length > 0 && (
-              <div className="relative group">
-                <img
-                  src={getModalImages()[currentImageIndex]}
-                  alt={selectedNews.title}
-                  className={`w-full object-cover rounded-t-xl cursor-pointer transition-all ${
-                    isImageZoomed ? 'h-auto max-h-[80vh]' : 'h-80'
-                  }`}
-                  onClick={() => setIsImageZoomed(!isImageZoomed)}
-                />
-
-                {getModalImages().length > 1 && (
-                  <>
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all z-30"
-                      aria-label="Предыдущее изображение"
-                    >
-                      <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all z-30"
-                      aria-label="Следующее изображение"
-                    >
-                      <ChevronRight className="w-6 h-6" />
-                    </button>
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30">
-                      {getModalImages().map((_, index) => (
-                        <div
-                          key={index}
-                          className={`h-2 rounded-full transition-all cursor-pointer ${
-                            index === currentImageIndex ? 'bg-white w-8' : 'bg-white/60 w-2'
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCurrentImageIndex(index);
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-
-                <div className="absolute top-4 left-4 z-30">{getCategoryBadge(selectedNews.type)}</div>
-
-                <button
-                  onClick={() => setIsImageZoomed(!isImageZoomed)}
-                  className="absolute top-4 right-16 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-30"
-                  aria-label={isImageZoomed ? 'Уменьшить' : 'Увеличить'}
-                >
-                  <ZoomIn className="w-5 h-5" />
-                </button>
+            <div className="p-6 pb-4">
+              <div className="flex items-start justify-between gap-4 mb-6">
+                <div className="flex-1">
+                  <h2 className="text-3xl font-bold text-gray-900 mb-3">{selectedNews.title}</h2>
+                  <div className="inline-block">{getCategoryBadge(selectedNews.type)}</div>
+                </div>
               </div>
-            )}
 
-            <div className="p-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">{selectedNews.title}</h2>
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
-                <span>{formatDate(selectedNews.publish_date)}</span>
-                <span className="font-medium">{selectedNews.author}</span>
-              </div>
               {loadingDetail ? (
-                <p>Загрузка...</p>
+                <p className="text-center py-8">Загрузка...</p>
               ) : (
-                <div
-                  className="prose max-w-none text-gray-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: selectedNews.content || '' }}
-                />
+                <>
+                  {getModalImages().length > 0 && (
+                    <div className="mb-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {getModalImages().map((img, index) => (
+                          <div
+                            key={index}
+                            className="relative group cursor-pointer overflow-hidden rounded-lg"
+                            onClick={() => {
+                              setCurrentImageIndex(index);
+                              setIsImageZoomed(true);
+                            }}
+                          >
+                            <img
+                              src={img}
+                              alt={`${selectedNews.title} - изображение ${index + 1}`}
+                              className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                              <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div
+                    className="prose prose-lg max-w-none text-gray-700 leading-relaxed mb-6"
+                    dangerouslySetInnerHTML={{ __html: selectedNews.content || '' }}
+                  />
+
+                  <div className="border-t border-gray-200 pt-4 mt-6">
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span className="font-medium">
+                        Опубликовано: {formatDate(selectedNews.publish_date)}
+                      </span>
+                      {selectedNews.author && (
+                        <span className="font-medium">Автор: {selectedNews.author}</span>
+                      )}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
 
@@ -251,6 +236,61 @@ const NewsList = () => {
               aria-label="Закрыть"
             >
               <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isImageZoomed && selectedNews && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4"
+          onClick={() => setIsImageZoomed(false)}
+        >
+          <div className="relative max-w-7xl max-h-[95vh] w-full h-full flex items-center justify-center">
+            <img
+              src={getModalImages()[currentImageIndex]}
+              alt={selectedNews.title}
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {getModalImages().length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    prevImage();
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-4 rounded-full transition-all backdrop-blur-sm"
+                  aria-label="Предыдущее изображение"
+                >
+                  <ChevronLeft className="w-8 h-8" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextImage();
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-4 rounded-full transition-all backdrop-blur-sm"
+                  aria-label="Следующее изображение"
+                >
+                  <ChevronRight className="w-8 h-8" />
+                </button>
+
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/50 px-4 py-2 rounded-full backdrop-blur-sm">
+                  <span className="text-white text-sm font-medium">
+                    {currentImageIndex + 1} / {getModalImages().length}
+                  </span>
+                </div>
+              </>
+            )}
+
+            <button
+              onClick={() => setIsImageZoomed(false)}
+              className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full backdrop-blur-sm transition-all"
+              aria-label="Закрыть"
+            >
+              <X className="w-7 h-7" />
             </button>
           </div>
         </div>

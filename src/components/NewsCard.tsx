@@ -150,8 +150,13 @@ const NewsCard = ({ post, onReadMore }: NewsCardProps) => {
         <div>
           <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
             <span>{formatDate(post.publish_date)}</span>
-            <span className="font-medium">{post.author}</span>
           </div>
+
+          {post.author && (
+            <div className="text-xs text-gray-600 mb-3">
+              <span className="font-medium">Автор: {post.author}</span>
+            </div>
+          )}
 
           <div className="flex items-center justify-between border-t border-gray-100 pt-3">
             <div className="flex items-center gap-1.5 text-sm text-gray-500">
