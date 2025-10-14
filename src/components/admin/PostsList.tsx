@@ -105,6 +105,10 @@ export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }
                   <TableCell>{post.views}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      {/* ↓↓↓ ВОТ КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ ↓↓↓
+                        Мы создаем глубокую копию объекта post перед передачей в onEdit.
+                        Это предотвращает случайное изменение оригинального поста в списке.
+                      */}
                       <Button variant="ghost" size="sm" onClick={() => onEdit(JSON.parse(JSON.stringify(post)))} className="gap-1">
                         <Pencil className="h-4 w-4" /> Редактировать
                       </Button>

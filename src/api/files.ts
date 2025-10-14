@@ -16,27 +16,36 @@ export interface FileInfo {
 }
 
 export const filesApi = {
-  upload: async (file: File): Promise<{ url: string }> => {
+  // ✅ ИСПРАВЛЕНИЕ: Объединяем старый метод отправки с новым методом чтения ответа
+  upload: async (file: File): Promise<string | undefined> => {
     const url = `${BASE_URL}/files?filename=${encodeURIComponent(file.name)}`;
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        ...getAuthHeaders(),
-        'Content-Type': file.type || 'application/octet-stream',
-      },
-      body: file,
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+          // 1. ВОЗВРАЩАЕМ ЗАГОЛОВОК: Серверу нужно знать тип файла.
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+        // 2. ВОЗВРАЩАЕМ МЕТОД: Отправляем файл напрямую, как "письмо в конверте".
+        body: file,
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: 'Не удалось загрузить файл.' }));
-      console.error('Ошибка при загрузке файла:', errorData);
-      throw new Error(errorData.detail || 'Не удалось загрузить файл.');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Не удалось загрузить файл.' }));
+        console.error('Ошибка при загрузке файла:', errorData);
+        return undefined;
+      }
+
+      // 3. ОСТАВЛЯЕМ МЕТОД: Читаем ответ как JSON, потому что он приходит в формате {"id": "..."}.
+      const result = await response.json();
+      return result.id;
+
+    } catch (error) {
+        console.error('Сетевая или JSON ошибка при загрузке файла:', error);
+        return undefined;
     }
-
-    const fileId = await response.text();
-
-    return { url: `/files/${fileId.replace(/"/g, '')}` };
   },
 
   getAll: async (): Promise<FileInfo[]> => {

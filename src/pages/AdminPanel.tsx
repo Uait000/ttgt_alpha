@@ -45,6 +45,8 @@ const AdminPanel = () => {
     setIsLoggedIn(false);
   };
 
+  // --- ЛОГИКА ДЛЯ ПОСТОВ ---
+
   const handleCreate = () => {
     setEditingPost(null);
     setIsFormOpen(true);
@@ -53,6 +55,18 @@ const AdminPanel = () => {
   const handleEdit = (post: NewsPost) => {
     setEditingPost(post);
     setIsFormOpen(true);
+  };
+  
+  // ✅ ИСПРАВЛЕНИЕ: Единая функция для закрытия формы постов
+  const handleFormClose = () => {
+    setIsFormOpen(false);
+    setEditingPost(null); // Сбрасываем пост при любом закрытии
+  };
+  
+  // Эта функция теперь более лаконичная
+  const handleFormSuccess = () => {
+    handleFormClose(); // Закрываем форму и сбрасываем состояние
+    setRefreshTrigger((prev) => prev + 1); // Обновляем список
   };
 
   const handleDeleteClick = (post: NewsPost) => {
@@ -81,12 +95,8 @@ const AdminPanel = () => {
     }
   };
 
-  // --- ИЗМЕНЕНО ---
-  const handleFormSuccess = () => {
-    setIsFormOpen(false); // <-- Добавлено: закрываем форму
-    setEditingPost(null); // <-- Добавлено: сбрасываем состояние редактирования
-    setRefreshTrigger((prev) => prev + 1); // Обновляем список
-  };
+
+  // --- ЛОГИКА ДЛЯ ВАКАНСИЙ ---
 
   const handleVacancyCreate = () => {
     setEditingVacancy(null);
@@ -96,6 +106,17 @@ const AdminPanel = () => {
   const handleVacancyEdit = (vacancy: Vacancy) => {
     setEditingVacancy(vacancy);
     setIsVacancyFormOpen(true);
+  };
+  
+  // ✅ ИСПРАВЛЕНИЕ: Единая функция для закрытия формы вакансий
+  const handleVacancyFormClose = () => {
+    setIsVacancyFormOpen(false);
+    setEditingVacancy(null);
+  };
+  
+  const handleVacancyFormSuccess = () => {
+    handleVacancyFormClose();
+    setVacancyRefreshTrigger((prev) => prev + 1);
   };
 
   const handleVacancyDeleteClick = (vacancy: Vacancy) => {
@@ -122,13 +143,6 @@ const AdminPanel = () => {
         variant: 'destructive',
       });
     }
-  };
-
-  // --- ИЗМЕНЕНО ---
-  const handleVacancyFormSuccess = () => {
-    setIsVacancyFormOpen(false); // <-- Добавлено: закрываем форму
-    setEditingVacancy(null);   // <-- Добавлено: сбрасываем состояние редактирования
-    setVacancyRefreshTrigger((prev) => prev + 1); // Обновляем список
   };
 
   return (
@@ -208,7 +222,7 @@ const AdminPanel = () => {
 
                 <PostForm
                   open={isFormOpen}
-                  onClose={() => setIsFormOpen(false)}
+                  onClose={handleFormClose} // <-- Используем новую функцию
                   onSuccess={handleFormSuccess}
                   editPost={editingPost}
                 />
@@ -222,13 +236,11 @@ const AdminPanel = () => {
 
                 <VacancyForm
                   open={isVacancyFormOpen}
-                  onClose={() => setIsVacancyFormOpen(false)}
+                  onClose={handleVacancyFormClose} // <-- Используем новую функцию
                   onSuccess={handleVacancyFormSuccess}
                   editVacancy={editingVacancy}
                 />
                 
-                {/* У вас был дублирующийся компонент DeletePostDialog, я предполагаю, что это для вакансий */}
-                {/* Если для вакансий свой компонент, замените DeletePostDialog на него */}
                 <DeletePostDialog
                   open={isVacancyDeleteOpen}
                   onClose={() => setIsVacancyDeleteOpen(false)}
