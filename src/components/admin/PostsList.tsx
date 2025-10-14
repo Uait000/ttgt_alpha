@@ -24,21 +24,23 @@ export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }
       setLoading(true);
       const data = await postsApi.getAll({ limit: 100, offset: 0 });
 
-      // Добавляем проверку, чтобы убедиться, что от сервера пришел именно массив.
       if (Array.isArray(data)) {
-        setPosts(data);
+        const normalizedPosts = data.map(post => ({
+          ...post,
+          body: (post as any).text || post.body || '',
+        }));
+        setPosts(normalizedPosts);
       } else {
         console.error("API did not return an array for posts:", data);
-        setPosts([]); // Устанавливаем пустой массив, чтобы избежать ошибки
+        setPosts([]);
       }
-      
+
     } catch (error) {
       toast({
         title: 'Ошибка',
         description: error instanceof Error ? error.message : 'Не удалось загрузить посты',
         variant: 'destructive',
       });
-      // В случае ошибки также устанавливаем пустой массив.
       setPosts([]);
     } finally {
       setLoading(false);
@@ -103,7 +105,7 @@ export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }
                   <TableCell>{post.views}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => onEdit(post)} className="gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => onEdit({ ...post })} className="gap-1">
                         <Pencil className="h-4 w-4" /> Редактировать
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => onDelete(post)} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
