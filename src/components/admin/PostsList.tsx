@@ -24,21 +24,23 @@ export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }
       setLoading(true);
       const data = await postsApi.getAll({ limit: 100, offset: 0 });
 
-      // Добавляем проверку, чтобы убедиться, что от сервера пришел именно массив.
       if (Array.isArray(data)) {
-        setPosts(data);
+        const normalizedPosts = data.map(post => ({
+          ...post,
+          body: (post as any).text || post.body || '',
+        }));
+        setPosts(normalizedPosts);
       } else {
         console.error("API did not return an array for posts:", data);
-        setPosts([]); // Устанавливаем пустой массив, чтобы избежать ошибки
+        setPosts([]);
       }
-      
+
     } catch (error) {
       toast({
         title: 'Ошибка',
         description: error instanceof Error ? error.message : 'Не удалось загрузить посты',
         variant: 'destructive',
       });
-      // В случае ошибки также устанавливаем пустой массив.
       setPosts([]);
     } finally {
       setLoading(false);

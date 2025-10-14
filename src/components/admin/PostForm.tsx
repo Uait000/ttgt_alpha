@@ -72,13 +72,15 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
   }, [toast]);
 
   useEffect(() => {
-    // Сбрасываем ошибку при каждом открытии/изменении формы
-    setTitleError(null); 
-    if (editPost) {
+    setTitleError(null);
+
+    if (open && editPost) {
       const postDate = new Date(editPost.publish_date * 1000);
+      const contentText = (editPost as any).text || editPost.body || '';
+
       setFormData({
         title: editPost.title,
-        content: editPost.body,
+        content: contentText,
         author: editPost.author,
         type: editPost.type,
         image_urls: editPost.image_urls || [],
@@ -87,7 +89,7 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
       });
       setSelectedDate(postDate);
       setImageFiles([]);
-    } else {
+    } else if (open && !editPost) {
       setFormData({
         title: '',
         content: '',
@@ -143,8 +145,24 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
     }
   };
 
+  const handleClose = () => {
+    setFormData({
+      title: '',
+      content: '',
+      author: teachers.length > 0 ? teachers[0].initials : '',
+      type: 0,
+      image_urls: [],
+      date: new Date().toISOString(),
+      category: 0,
+    });
+    setSelectedDate(new Date());
+    setImageFiles([]);
+    setTitleError(null);
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{editPost ? 'Редактировать пост' : 'Создать новый пост'}</DialogTitle>
@@ -211,7 +229,7 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
           <MultipleFileUpload value={formData.image_urls} onChange={(files) => setImageFiles(files)} label="Изображения" maxFiles={20} />
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>Отмена</Button>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>Отмена</Button>
             <Button type="submit" disabled={loading}>{loading ? 'Сохранение...' : editPost ? 'Обновить' : 'Создать'}</Button>
           </DialogFooter>
         </form>
