@@ -14,6 +14,7 @@ const NewsList = () => {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   useEffect(() => {
     if (posts.length > 0) {
@@ -48,6 +49,13 @@ const NewsList = () => {
   };
 
   const handleReadMore = async (post: NewsPost) => {
+    if (abortController) {
+      abortController.abort();
+    }
+
+    const newAbortController = new AbortController();
+    setAbortController(newAbortController);
+
     setLoadingDetail(true);
     setSelectedNews(post);
     setCurrentImageIndex(0);
@@ -62,7 +70,7 @@ const NewsList = () => {
 
     try {
       const url = `${BASE_URL}/content/posts/${identifier}`;
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: newAbortController.signal });
       if (!response.ok) throw new Error('Failed to fetch news detail');
 
       const detailData: NewsDetailPost = await response.json();
@@ -72,15 +80,24 @@ const NewsList = () => {
         content: (detailData as any).text || detailData.content || detailData.body,
       };
 
-      setSelectedNews(finalDetail);
+      if (!newAbortController.signal.aborted) {
+        setSelectedNews(finalDetail);
+      }
     } catch (err) {
-      console.error('Error loading news detail:', err);
+      if ((err as Error).name !== 'AbortError') {
+        console.error('Error loading news detail:', err);
+      }
     } finally {
-      setLoadingDetail(false);
+      if (!newAbortController.signal.aborted) {
+        setLoadingDetail(false);
+      }
     }
   };
 
   const closeModal = () => {
+    if (abortController) {
+      abortController.abort();
+    }
     setSelectedNews(null);
     setCurrentImageIndex(0);
     setIsImageZoomed(false);
@@ -89,26 +106,27 @@ const NewsList = () => {
   const getModalImages = (): string[] => {
     if (!selectedNews) return [];
     const images: string[] = [];
+    const cleanBaseUrl = BASE_URL.replace('/api', '');
 
     if (Array.isArray((selectedNews as any).images) && (selectedNews as any).images.length > 0) {
-      (selectedNews as any).images.forEach((url: string) => {
+      (selectedNews as any).images.forEach((imageId: string) => {
+        if (imageId) {
+          const fullUrl = `${cleanBaseUrl}/files/${imageId}`;
+          images.push(fullUrl);
+        }
+      });
+    } else if (selectedNews.image_urls && selectedNews.image_urls.length > 0) {
+      selectedNews.image_urls.forEach((url: string) => {
         if (url) {
-          const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
+          const fullUrl = url.startsWith('http') ? url : `${cleanBaseUrl}${url}`;
           images.push(fullUrl);
         }
       });
     } else if (selectedNews.image_url) {
       const fullUrl = selectedNews.image_url.startsWith('http')
         ? selectedNews.image_url
-        : `${BASE_URL}${selectedNews.image_url}`;
+        : `${cleanBaseUrl}${selectedNews.image_url}`;
       images.push(fullUrl);
-    } else if (selectedNews.image_urls && selectedNews.image_urls.length > 0) {
-      selectedNews.image_urls.forEach((url: string) => {
-        if (url) {
-          const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
-          images.push(fullUrl);
-        }
-      });
     }
 
     return images;
