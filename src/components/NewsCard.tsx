@@ -14,22 +14,25 @@ const NewsCard = ({ post, onReadMore }: NewsCardProps) => {
     return null;
   }
 
+  // ✅ ИСПРАВЛЕНИЕ: Логика сборки URL картинок
   const images: string[] = [];
+  const cleanBaseUrl = BASE_URL.replace('/api', ''); // Убираем /api, чтобы получить корень сайта
 
-  if (Array.isArray((post as any).images) && (post as any).images.length > 0) {
-    (post as any).images.forEach((url: string) => {
-      if (url) {
-        const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
+  // Новая логика для постов, где картинки приходят как массив ID в поле 'images'
+  if (Array.isArray(post.images) && post.images.length > 0) {
+    post.images.forEach((imageId: string) => {
+      if (imageId) {
+        // Правильно собираем полную ссылку: корень + /files/ + ID картинки
+        const fullUrl = `${cleanBaseUrl}/files/${imageId}`;
         images.push(fullUrl);
       }
     });
-  } else if (post.image_url) {
-    const fullUrl = post.image_url.startsWith('http') ? post.image_url : `${BASE_URL}${post.image_url}`;
-    images.push(fullUrl);
-  } else if (post.image_urls && post.image_urls.length > 0) {
+  } 
+  // Старая логика для совместимости, если картинки приходят в других полях
+  else if (post.image_urls && post.image_urls.length > 0) {
     post.image_urls.forEach((url: string) => {
       if (url) {
-        const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
+        const fullUrl = url.startsWith('http') ? url : `${cleanBaseUrl}${url}`;
         images.push(fullUrl);
       }
     });
@@ -38,7 +41,7 @@ const NewsCard = ({ post, onReadMore }: NewsCardProps) => {
   const hasMultipleImages = images.length > 1;
   const hasImage = images.length > 0;
 
-  const postText = (post as any).text || post.body || '';
+  const postText = post.body || '';
   const snippet = postText.replace(/<[^>]*>?/gm, '').substring(0, 150);
 
   const formatDate = (dateInSeconds: number) => {

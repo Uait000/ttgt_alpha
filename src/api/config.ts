@@ -21,6 +21,7 @@ export interface NewsPost {
   body: string; // Основной текст, который приходит в списке
   image_url?: string;
   image_urls?: string[];
+  images?: string[];
   publish_date: number;
   author: string;
   views: number;
