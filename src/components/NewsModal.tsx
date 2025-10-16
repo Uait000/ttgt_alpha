@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
-import { NewsPost, POST_TAGS } from '@/api/config';
+import { BASE_URL, NewsPost, POST_TAGS } from '@/api/config';
 
 const NewsModal = ({ post, onClose, isLoading }: { post: NewsPost; onClose: () => void; isLoading: boolean }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -8,18 +8,18 @@ const NewsModal = ({ post, onClose, isLoading }: { post: NewsPost; onClose: () =
 
   const getModalImages = (): string[] => {
     const images: string[] = [];
-    const cleanBaseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
+    const baseUrl = BASE_URL || '';
 
     if (Array.isArray(post.images) && post.images.length > 0) {
       post.images.forEach((imageId: string) => {
         if (imageId) {
-          images.push(`${cleanBaseUrl}/files/${imageId}`);
+          images.push(`${baseUrl}/files/${imageId}`);
         }
       });
     } else if (post.image_urls && post.image_urls.length > 0) {
       post.image_urls.forEach((url: string) => {
         if (url) {
-          images.push(url.startsWith('http') ? url : `${cleanBaseUrl}${url}`);
+          images.push(url.startsWith('http') ? url : `${baseUrl}${url}`);
         }
       });
     }
@@ -73,7 +73,12 @@ const NewsModal = ({ post, onClose, isLoading }: { post: NewsPost; onClose: () =
                     ))}
                   </div>
                 )}
-                <div className="prose prose-lg max-w-none text-gray-700" dangerouslySetInnerHTML={{ __html: post.body || '' }}/>
+                
+                {/* ✅ ИСПРАВЛЕНИЕ: Используем `post.text` вместо `post.body` */}
+                <div className="max-w-none text-gray-700 whitespace-pre-wrap">
+                  {post.text || ''}
+                </div>
+
                 <div className="border-t border-gray-200 pt-4 mt-6 flex items-center justify-between text-sm text-gray-600">
                   <span>Опубликовано: {formatDate(post.publish_date)}</span>
                   {post.author && <span>Автор: {post.author}</span>}
