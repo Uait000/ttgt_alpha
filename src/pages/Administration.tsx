@@ -2,6 +2,13 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import InfoBlocks from '@/components/InfoBlocks';
+import adm_1 from '@/assets/pictures/Zavyalov.png';
+import adm_2 from '@/assets/pictures/adm_2.png';
+import adm_3 from '@/assets/pictures/adm_3.png';
+import adm_4 from '@/assets/pictures/adm_4.png';
+import adm_5 from '@/assets/pictures/adm_5.png';
+import adm_6 from '@/assets/pictures/adm_6.png';
+import adm_7 from '@/assets/pictures/adm_7.png';
 
 const Administration = () => {
   const staff = [
@@ -12,7 +19,7 @@ const Administration = () => {
       phone: '6-20-03',
       email: 'director@ttgt.org',
       schedule: 'ежедневно четверг 14.00 - 15.00 час.',
-      photo: 'https://s2.radikal.cloud/2025/09/22/snapedit_1758485254218-KOPIYe8b14b1ca6e6da35.png'
+      photo: adm_1
     },
     {
       id: 2,
@@ -21,7 +28,7 @@ const Administration = () => {
       phone: '6-20-03 доб.112',
       email: 'zamus@ttgt.org',
       schedule: 'ежедневно среда 14.00 - 15.00 час.',
-      photo: 'https://s3.radikal.cloud/2025/09/21/shitikova-pica-no-bg-preview-carve.photos3f8b44688444fab9.png'
+      photo: adm_2
     },
     {
       id: 3,
@@ -30,7 +37,7 @@ const Administration = () => {
       phone: '6-20-03 доб.132',
       email: 'zamupr@ttgt.org',
       schedule: 'ежедневно среда 14.00 - 15.00 час.',
-      photo: 'https://s1.radikal.cloud/2025/09/21/Airbrush-Image-Enhancer-1758322085807-no-bg-preview-carve.photoscf4659f73688a8b7.png'
+      photo: adm_3
     },
     {
       id: 4,
@@ -39,7 +46,7 @@ const Administration = () => {
       phone: '6-20-03 доб.127',
       email: 'zamuvr@ttgt.org',
       schedule: 'ежедневно пятница 14.00 - 15.00 час.',
-      photo: 'https://s2.radikal.cloud/2025/09/21/Airbrush-Image-Enhancer-1758322892710-no-bg-preview-carve.photos-KOPIYb0791d061e58713b.png'
+      photo: adm_4
     },
     {
       id: 5,
@@ -48,7 +55,7 @@ const Administration = () => {
       phone: '6-20-03 доб.118',
       email: 'lic@ttgt.org',
       schedule: '-',
-      photo: 'https://radika1.link/2025/09/21/Airbrush-Image-Enhancer-1758322805524-no-bg-preview-carve.photos9fa0a454785671cc.png'
+      photo: adm_5
     },
     {
       id: 6,
@@ -57,7 +64,7 @@ const Administration = () => {
       phone: '6-20-03 доб.112',
       email: 'buh@ttgt.org',
       schedule: '-',
-      photo: 'https://s2.radikal.cloud/2025/09/21/Airbrush-Image-Enhancer-1758322892710-no-bg-preview-carve.photosb13a47491f3c8e82.png'
+      photo: adm_6
     },
     {
       id: 7,
@@ -66,7 +73,7 @@ const Administration = () => {
       phone: '6-20-03 доб.117',
       email: 'axch@ttgt.org',
       schedule: '-',
-      photo: 'https://s1.radikal.cloud/2025/09/21/snapedit_17584852542185626bf3121159cb1.png'
+      photo: adm_7
     }
   ];
 

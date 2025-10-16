@@ -1,29 +1,106 @@
+import { useState } from 'react';
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import InfoBlocks from '@/components/InfoBlocks';
+import image1930 from '@/assets/pictures/ttgt_30.jpg'; 
+import imageWar from '@/assets/pictures/ttgt_95.jpg';
+import imageModern from '@/assets/pictures/Zavyalov.png';
+
+// Компонент Модального окна (Лайтбокс) - Без изменений
+const ImageModal = ({ src, alt, onClose }) => {
+  if (!src) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4 cursor-pointer"
+      onClick={onClose}
+    >
+      <div 
+        className="relative max-w-4xl max-h-full"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img 
+          src={src} 
+          alt={alt} 
+          // Используем object-contain, чтобы показать всю картинку в модальном окне
+          className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl rounded-lg" 
+        />
+        <button 
+          className="absolute top-4 right-4 text-white text-3xl font-bold p-2 leading-none"
+          onClick={onClose}
+        >
+          &times;
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Функция-обертка для рендера кликабельного элемента
+const renderClickableImage = (src, alt, gradientClass, openModal, isRectangular = false, floatClass = '') => {
+    // Если изображение прямоугольное, мы удаляем aspect-square и используем h-full
+    const sizeClasses = isRectangular 
+        ? 'h-full flex-grow' 
+        : 'aspect-square flex items-center justify-center';
+
+    return (
+        // В данном случае floatClass не используется, но оставляем его в функции для гибкости.
+        // Главное - sizeClasses
+        <div className={`bg-gradient-to-br ${gradientClass} rounded-lg p-4 overflow-hidden ${sizeClasses} ${floatClass}`}>
+            <button 
+                className="w-full h-full p-0 border-none cursor-pointer group"
+                onClick={() => openModal(src, alt)}
+                aria-label={`Увеличить изображение: ${alt}`}
+            >
+                <img 
+                    src={src} 
+                    alt={alt} 
+                    className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-[1.05]" 
+                />
+            </button>
+        </div>
+    );
+};
+
 
 const History = () => {
+  const [modalImageSrc, setModalImageSrc] = useState<string | null>(null);
+  const [modalImageAlt, setModalImageAlt] = useState<string>('');
+
+  const openModal = (src: string, alt: string) => {
+    const imageUrl = typeof src === 'string' ? src : (src as any).src || src;
+    setModalImageSrc(imageUrl);
+    setModalImageAlt(alt);
+  };
+
+  const closeModal = () => {
+    setModalImageSrc(null);
+    setModalImageAlt('');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
+      {/* Модальное окно */}
+      <ImageModal src={modalImageSrc} alt={modalImageAlt} onClose={closeModal} />
+
       <div className="flex">
         <Sidebar />
         
         <main className="flex-1 min-h-screen">
           <div className="container mx-auto px-6 py-8">
-            {/* Info Blocks */}
+            
             <InfoBlocks />
             
             <div className="bg-white rounded-lg shadow-sm border border-border p-8">
               <h1 className="text-3xl font-bold text-primary mb-8 text-center">История техникума</h1>
               
+              {/* БЛОК 1 - Историческое фото: Фото слева, Текст справа. Grid 1/3 и 2/3 */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                 <div className="lg:col-span-1">
-                  <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg p-4 aspect-square flex items-center justify-center">
-                    <img src="https://images.pexels.com/photos/256541/pexels-photo-256541.jpeg" alt="Историческое фото 1930" className="w-full h-full object-cover rounded-lg" />
-                  </div>
+                  {renderClickableImage(image1930, "Историческое фото 1930", "from-primary/10 to-secondary/10", openModal, false)}
                 </div>
                 <div className="lg:col-span-2">
                   <div className="prose prose-gray max-w-none">
@@ -37,8 +114,10 @@ const History = () => {
                 </div>
               </div>
 
+              {/* БЛОК 2 - Фото директора: Текст слева, Фото справа. Grid 2/3 и 1/3 */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                <div className="lg:col-span-2">
+                {/* Текст занимает 2/3 ширины (больше места для обтекания) */}
+                <div className="lg:col-span-2"> 
                   <div className="prose prose-gray max-w-none">
                     <p className="text-foreground leading-relaxed mb-4">
                       В декабре 1934 году учебное заведение возглавил опытный производственник Сакварелидзе М.А. Техникум успешно развивался, но грянула Великая Отечественная война. С сентября 1941 года Тихорецк подвергался постоянным вражеским налетам. В начале войны почти пятая часть тихоречан ушла на фронт.
@@ -48,13 +127,17 @@ const History = () => {
                     </p>
                   </div>
                 </div>
-                <div className="lg:col-span-1">
-                  <div className="bg-gradient-to-br from-secondary/10 to-accent/10 rounded-lg p-4 aspect-square flex items-center justify-center">
-                    <img src="https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg" alt="Военные годы" className="w-full h-full object-cover rounded-lg" />
+                
+                {/* Фото директора (Прямоугольное, занимает 1/3 ширины) */}
+                <div className="lg:col-span-1 flex justify-end items-start"> 
+                  {/* 💡 ИЗМЕНЕНИЕ: Добавляем max-w-xs (или max-w-sm), чтобы изображение не растягивалось на всю 1/3 колонки, а оставалось узким и "обтекаемым" */}
+                  <div className="max-w-xs w-full"> 
+                    {renderClickableImage(imageModern, "Фото директора", "from-secondary/10 to-accent/10", openModal, true)}
                   </div>
                 </div>
               </div>
 
+              {/* ТЕКСТ (без изменений) */}
               <div className="mb-8">
                 <div className="prose prose-gray max-w-none">
                   <p className="text-foreground leading-relaxed mb-4">
@@ -75,11 +158,10 @@ const History = () => {
                 </div>
               </div>
 
+              {/* БЛОК 3 - Современный вид: Фото слева, Текст справа. Grid 1/3 и 2/3 */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                 <div className="lg:col-span-1">
-                  <div className="bg-gradient-to-br from-accent/10 to-primary/10 rounded-lg p-4 aspect-square flex items-center justify-center">
-                    <img src="https://images.pexels.com/photos/256490/pexels-photo-256490.jpeg" alt="Современный вид" className="w-full h-full object-cover rounded-lg" />
-                  </div>
+                  {renderClickableImage(imageWar, "Современный вид", "from-accent/10 to-primary/10", openModal, false)}
                 </div>
                 <div className="lg:col-span-2">
                   <div className="prose prose-gray max-w-none">
@@ -93,6 +175,7 @@ const History = () => {
                 </div>
               </div>
 
+              {/* БЛОК ДОСТИЖЕНИЙ (без изменений) */}
               <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-6 mb-8">
                 <h2 className="text-xl font-semibold text-primary mb-4">Современность и достижения</h2>
                 <div className="prose prose-gray max-w-none">
@@ -126,7 +209,7 @@ const History = () => {
           </div>
         </main>
         
-        <aside className="w-80 bg-white border-l border-border p-6 sticky top-16 h-screen overflow-y-auto">
+        <aside className="w-80 bg-white border-l border-border p-6 sticky top-16 overflow-y-auto">
           <SidebarCards />
         </aside>
       </div>
