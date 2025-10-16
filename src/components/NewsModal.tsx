@@ -51,37 +51,54 @@ const NewsModal = ({ post, onClose, isLoading }: { post: NewsPost; onClose: () =
 
   return (
     <>
-      {/* Главное модальное окно */}
       <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4" onClick={onClose}>
         <div className="bg-white rounded-xl shadow-2xl max-w-4xl max-h-[90vh] overflow-y-auto w-full relative" onClick={(e) => e.stopPropagation()}>
           <div className="p-6 pb-4">
-            <div className="flex items-start justify-between gap-4 mb-6">
+            <div className="flex items-start justify-between gap-4 mb-6 pr-12">
               <h2 className="text-3xl font-bold text-gray-900 flex-1">{post.title}</h2>
               {getCategoryBadge(post.type)}
             </div>
+            
             {isLoading ? <p className="text-center py-8">Загрузка...</p> : (
               <>
                 {modalImages.length > 0 && (
-                  <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {modalImages.map((img, index) => (
-                      <div key={index} className="relative group cursor-pointer overflow-hidden rounded-lg" onClick={() => { setCurrentImageIndex(index); setIsImageZoomed(true); }}>
-                        <img src={img} alt={`${post.title} - ${index + 1}`} className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"/>
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-colors">
-                          <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      </div>
-                    ))}
+                  <div className="relative mb-6 w-full h-80 rounded-lg overflow-hidden group bg-gray-100 flex items-center justify-center"> {/* Добавлен flex и justify-center для центрирования при object-contain */}
+                    {/* ✅ ИЗМЕНЕНИЕ: object-cover заменён на object-contain */}
+                    <img
+                      src={modalImages[currentImageIndex]}
+                      alt={`${post.title} - ${currentImageIndex + 1}`}
+                      className="max-w-full max-h-full object-contain transition-transform duration-300"
+                    />
+                    
+                    {/* Оверлей для зума */}
+                    <div 
+                      className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-colors cursor-pointer"
+                      onClick={() => setIsImageZoomed(true)}
+                    >
+                      <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+
+                    {/* Кнопки навигации для карусели */}
+                    {modalImages.length > 1 && (
+                      <>
+                        <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-2 rounded-full text-white transition-opacity opacity-0 group-hover:opacity-100">
+                          <ChevronLeft className="w-6 h-6" />
+                        </button>
+                        <button onClick={nextImage} className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-2 rounded-full text-white transition-opacity opacity-0 group-hover:opacity-100">
+                          <ChevronRight className="w-6 h-6" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
                 
-                {/* ✅ ИСПРАВЛЕНИЕ: Используем `post.text` вместо `post.body` */}
                 <div className="max-w-none text-gray-700 whitespace-pre-wrap">
-                  {post.text || ''}
+                  {post.text || post.body || ''}
                 </div>
 
                 <div className="border-t border-gray-200 pt-4 mt-6 flex items-center justify-between text-sm text-gray-600">
-                  <span>Опубликовано: {formatDate(post.publish_date)}</span>
-                  {post.author && <span>Автор: {post.author}</span>}
+                  <span className="font-semibold">Опубликовано: {formatDate(post.publish_date)}</span>
+                  {post.author && <span className="font-semibold">Автор: {post.author}</span>}
                 </div>
               </>
             )}
@@ -90,7 +107,6 @@ const NewsModal = ({ post, onClose, isLoading }: { post: NewsPost; onClose: () =
         </div>
       </div>
 
-      {/* Модальное окно для зума картинки */}
       {isImageZoomed && (
         <div className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center p-4" onClick={() => setIsImageZoomed(false)}>
           <img src={modalImages[currentImageIndex]} alt={post.title} className="max-w-full max-h-full object-contain" onClick={(e) => e.stopPropagation()} />
