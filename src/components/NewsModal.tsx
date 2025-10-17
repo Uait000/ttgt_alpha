@@ -54,7 +54,6 @@ const NewsModal = ({ post, onClose, isLoading }: { post: NewsPost; onClose: () =
       <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4" onClick={onClose}>
         <div className="bg-white rounded-xl shadow-2xl max-w-4xl max-h-[90vh] overflow-y-auto w-full relative" onClick={(e) => e.stopPropagation()}>
           <div className="p-6 pb-4">
-            {/* ✅ ИЗМЕНЕНИЕ 1: Добавлен отступ pr-12, чтобы текст не заезжал под крестик */}
             <div className="flex items-start justify-between gap-4 mb-6 pr-12">
               <h2 className="text-3xl font-bold text-gray-900 flex-1">{post.title}</h2>
               {getCategoryBadge(post.type)}
@@ -62,44 +61,22 @@ const NewsModal = ({ post, onClose, isLoading }: { post: NewsPost; onClose: () =
             
             {isLoading ? <p className="text-center py-8">Загрузка...</p> : (
               <>
-                {/* ✅ ИЗМЕНЕНИЕ 3: Блок сетки заменён на карусель */}
-                {modalImages.length > 0 && (
-                  <div className="relative mb-6 w-full h-80 rounded-lg overflow-hidden group">
-                    {/* Отображаем только текущее изображение */}
-                    <img
-                      src={modalImages[currentImageIndex]}
-                      alt={`${post.title} - ${currentImageIndex + 1}`}
-                      className="w-full h-full object-cover transition-transform duration-300"
-                    />
-                    
-                    {/* Оверлей для зума */}
-                    <div 
-                      className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-colors cursor-pointer"
-                      onClick={() => setIsImageZoomed(true)}
-                    >
-                      <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {modalImages.map((img, index) => (
+                    <div key={index} className="relative group cursor-pointer overflow-hidden rounded-lg" onClick={() => { setCurrentImageIndex(index); setIsImageZoomed(true); }}>
+                      <img src={img} alt={`${post.title} - ${index + 1}`} className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"/>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-colors">
+                        <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
                     </div>
-
-                    {/* Кнопки навигации для карусели */}
-                    {modalImages.length > 1 && (
-                      <>
-                        <button onClick={prevImage} className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-2 rounded-full text-white transition-opacity opacity-0 group-hover:opacity-100">
-                          <ChevronLeft className="w-6 h-6" />
-                        </button>
-                        <button onClick={nextImage} className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-2 rounded-full text-white transition-opacity opacity-0 group-hover:opacity-100">
-                          <ChevronRight className="w-6 h-6" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
+                  ))}
+                </div>
                 
                 <div className="max-w-none text-gray-700 whitespace-pre-wrap">
-                  {post.text || post.body || ''}
+                  {post.text || ''}
                 </div>
 
                 <div className="border-t border-gray-200 pt-4 mt-6 flex items-center justify-between text-sm text-gray-600">
-                  {/* ✅ ИЗМЕНЕНИЕ 2: Добавлен класс font-semibold для жирности */}
                   <span className="font-semibold">Опубликовано: {formatDate(post.publish_date)}</span>
                   {post.author && <span className="font-semibold">Автор: {post.author}</span>}
                 </div>
