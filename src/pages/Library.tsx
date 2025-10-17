@@ -4,19 +4,29 @@ import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import InfoBlocks from '@/components/InfoBlocks';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import lib_1 from '@/assets/pictures/phoca_thumb_l_276.jfif';
+import lib_2 from '@/assets/pictures/phoca_thumb_l_277.jfif';
+import lib_3 from '@/assets/pictures/phoca_thumb_l_278.jfif';
+import lib_4 from '@/assets/pictures/phoca_thumb_l_279.jfif';
+import lib_5 from '@/assets/pictures/phoca_thumb_l_280.jfif';
+import lib_6 from '@/assets/pictures/phoca_thumb_l_281.jfif';
+import lib_7 from '@/assets/pictures/phoca_thumb_l_282.jfif';
+import lib_8 from '@/assets/pictures/phoca_thumb_l_283.jfif';
+import lib_9 from '@/assets/pictures/phoca_thumb_l_284.jfif';
 
 const Library = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const images = [
-    { id: 1, src: 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg', alt: 'Библиотека 1' },
-    { id: 2, src: 'https://images.pexels.com/photos/256541/pexels-photo-256541.jpeg', alt: 'Библиотека 2' },
-    { id: 3, src: 'https://images.pexels.com/photos/1181533/pexels-photo-1181533.jpeg', alt: 'Библиотека 3' },
-    { id: 4, src: 'https://images.pexels.com/photos/1181534/pexels-photo-1181534.jpeg', alt: 'Библиотека 4' },
-    { id: 5, src: 'https://images.pexels.com/photos/1181677/pexels-photo-1181677.jpeg', alt: 'Библиотека 5' },
-    { id: 6, src: 'https://images.pexels.com/photos/1181678/pexels-photo-1181678.jpeg', alt: 'Библиотека 6' },
-    { id: 7, src: 'https://images.pexels.com/photos/1181679/pexels-photo-1181679.jpeg', alt: 'Библиотека 7' },
-    { id: 8, src: 'https://images.pexels.com/photos/1181680/pexels-photo-1181680.jpeg', alt: 'Библиотека 8' }
+    { id: 1, src: lib_1, alt: 'Библиотека 1' },
+    { id: 2, src: lib_2, alt: 'Библиотека 2' },
+    { id: 3, src: lib_3, alt: 'Библиотека 3' },
+    { id: 4, src: lib_4, alt: 'Библиотека 4' },
+    { id: 5, src: lib_5, alt: 'Библиотека 5' },
+    { id: 6, src: lib_6, alt: 'Библиотека 6' },
+    { id: 7, src: lib_7, alt: 'Библиотека 7' },
+    { id: 8, src: lib_8, alt: 'Библиотека 8' },
+    { id: 9, src: lib_9, alt: 'Библиотека 9' }
   ];
 
   const nextSlide = () => {

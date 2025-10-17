@@ -3,6 +3,11 @@ import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import InfoBlocks from '@/components/InfoBlocks';
 import { Card } from '@/components/ui/card';
+import lc_1 from '@/assets/pictures/Licen1.jpg';
+import lc_2 from '@/assets/pictures/Licen2.jpg';
+import lc_3 from '@/assets/pictures/ttzht_prilog1.jpg';
+import lc_4 from '@/assets/pictures/ttzht_prilog2.jpg';
+import qr_lc from '@/assets/pictures/qr_lic_2024.jpg';
 
 const License = () => {
   return (
@@ -25,10 +30,10 @@ const License = () => {
                   <h2 className="text-xl font-semibold text-primary mb-4">Документ о лицензии №1</h2>
                   <div 
                     className="aspect-[3/4] bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300"
-                    onClick={() => window.open('https://images.pexels.com/photos/1181533/pexels-photo-1181533.jpeg', '_blank')}
+                    onClick={() => window.open(lc_1, '_blank')}
                   >
                     <img 
-                      src="https://images.pexels.com/photos/1181533/pexels-photo-1181533.jpeg" 
+                      src={lc_1}
                       alt="Документ о лицензии №1"
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
@@ -39,10 +44,10 @@ const License = () => {
                   <h2 className="text-xl font-semibold text-primary mb-4">Документ о лицензии №2</h2>
                   <div 
                     className="aspect-[3/4] bg-gradient-to-br from-secondary/10 to-accent/10 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300"
-                    onClick={() => window.open('https://images.pexels.com/photos/1181534/pexels-photo-1181534.jpeg', '_blank')}
+                    onClick={() => window.open(lc_2, '_blank')}
                   >
                     <img 
-                      src="https://images.pexels.com/photos/1181534/pexels-photo-1181534.jpeg" 
+                      src={lc_2} 
                       alt="Документ о лицензии №2"
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
@@ -55,10 +60,10 @@ const License = () => {
                   <h2 className="text-xl font-semibold text-primary mb-4">Документ о лицензии №3</h2>
                   <div 
                     className="aspect-[3/4] bg-gradient-to-br from-accent/10 to-primary/10 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300"
-                    onClick={() => window.open('https://images.pexels.com/photos/1181677/pexels-photo-1181677.jpeg', '_blank')}
+                    onClick={() => window.open(lc_3, '_blank')}
                   >
                     <img 
-                      src="https://images.pexels.com/photos/1181677/pexels-photo-1181677.jpeg" 
+                      src={lc_3}
                       alt="Документ о лицензии №3"
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
@@ -69,10 +74,10 @@ const License = () => {
                   <h2 className="text-xl font-semibold text-primary mb-4">Документ о лицензии №4</h2>
                   <div 
                     className="aspect-[3/4] bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300"
-                    onClick={() => window.open('https://images.pexels.com/photos/1181678/pexels-photo-1181678.jpeg', '_blank')}
+                    onClick={() => window.open(lc_4, '_blank')}
                   >
                     <img 
-                      src="https://images.pexels.com/photos/1181678/pexels-photo-1181678.jpeg" 
+                      src={lc_4} 
                       alt="Документ о лицензии №4"
                       className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
@@ -86,10 +91,10 @@ const License = () => {
                   <div className="flex justify-center">
                     <div 
                       className="w-64 h-64 bg-white rounded-lg shadow-lg border border-border overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300"
-                      onClick={() => window.open('https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg', '_blank')}
+                      onClick={() => window.open(qr_lc, '_blank')}
                     >
                       <img 
-                        src="https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg" 
+                        src={qr_lc}
                         alt="QR-код для проверки"
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       />

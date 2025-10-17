@@ -4,13 +4,22 @@ import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import InfoBlocks from '@/components/InfoBlocks';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import dc_1 from '@/assets/file/Zapovedi_rodit.pdf';
+import dc_2 from '@/assets/file/Zakon_na_zashshite_det.pdf';
+import dc_3 from '@/assets/file/Vospit_bez_nasil_kons_bes.pdf';
+import dc_4 from '@/assets/file/Prin_sem_blagop.pdf';
+import dc_5 from '@/assets/file/Predupr_prestup.pdf';
+import dc_6 from '@/assets/file/Poved_rod_v_konf_rek.pdf';
+import dc_7 from '@/assets/file/Detctvo_bez_nasil_kons_dlya_rodit.pdf';
+import dover from '@/assets/pictures/tel_dov_deti.jpg';
+import pam from '@/assets/pictures/2.jpg';
 
 const EducationalWork = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const images = [
-    { id: 1, src: 'https://images.pexels.com/photos/1181533/pexels-photo-1181533.jpeg', alt: 'Воспитательная работа 1' },
-    { id: 2, src: 'https://images.pexels.com/photos/1181534/pexels-photo-1181534.jpeg', alt: 'Воспитательная работа 2' }
+    { id: 1, src: dover, alt: 'Воспитательная работа 1' },
+    { id: 2, src: pam, alt: 'Воспитательная работа 2' }
   ];
 
   const nextSlide = () => {
@@ -22,13 +31,13 @@ const EducationalWork = () => {
   };
 
   const pdfDocuments = [
-    'Закон на защите детства',
-    'Детство без насилия и жестокости (консультация для родителей)',
-    'Консультативная беседа с родителями на тему: "Воспитание без насилия"',
-    'Памятка для родителей (заповеди)',
-    'Предупреждение преступлений в отношении детей, защита их жизни и здоровья. Создание безопасных условий воспитания, присмотра и ухода. Памятка для детей, подростков и родителей (законных представителей) по предупреждению противоправных действий в отношении несовершеннолетних',
-    'Принципы семейного благополучия. Основные параметры неправильного воспитания',
-    'Поведение родителей в конфликте с подростком (рекомендации)'
+    { title: 'Закон на защите детства', file: dc_2 },
+    { title: 'Детство без насилия и жестокости (консультация для родителей)', file: dc_7 },
+    { title: 'Консультативная беседа с родителями на тему: "Воспитание без насилия"', file: dc_3 },
+    { title: 'Памятка для родителей (заповеди)', file: dc_1 },
+    { title: 'Предупреждение преступлений в отношении детей, защита их жизни и здоровья...', file: dc_5 },
+    { title: 'Принципы семейного благополучия. Основные параметры неправильного воспитания', file: dc_4 },
+    { title: 'Поведение родителей в конфликте с подростком (рекомендации)', file: dc_6 }
   ];
 
   return (
@@ -40,7 +49,6 @@ const EducationalWork = () => {
         
         <main className="flex-1 min-h-screen">
           <div className="container mx-auto px-6 py-8">
-            {/* Info Blocks */}
             <InfoBlocks />
             
             <div className="bg-white rounded-lg shadow-sm border border-border p-8">
@@ -49,15 +57,16 @@ const EducationalWork = () => {
               <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-border/50 p-8">
                 {/* Карусель изображений */}
                 <div className="relative max-w-4xl mx-auto mb-8">
-                  <div className="aspect-[16/10] bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl overflow-hidden shadow-lg">
+                  {/* ✅ ИСПРАВЛЕНИЕ: Убраны классы, задающие фиксированную высоту/пропорции */}
+                  <div className="rounded-xl overflow-hidden shadow-lg">
                     <img
                       src={images[currentSlide].src}
                       alt={images[currentSlide].alt}
-                      className="w-full h-full object-cover"
+                      // ✅ ИСПРАВЛЕНИЕ: Высота теперь подстраивается автоматически
+                      className="w-full h-auto"
                     />
                   </div>
 
-                  {/* Стрелки навигации */}
                   <button
                     onClick={prevSlide}
                     className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white border border-border rounded-full p-3 hover:shadow-lg transition-all duration-200"
@@ -72,7 +81,6 @@ const EducationalWork = () => {
                     <ChevronRight className="w-6 h-6 text-primary" />
                   </button>
 
-                  {/* Индикаторы */}
                   <div className="flex justify-center space-x-2 mt-4">
                     {images.map((_, index) => (
                       <button
@@ -121,12 +129,14 @@ const EducationalWork = () => {
                     {pdfDocuments.map((doc, index) => (
                       <a
                         key={index}
-                        href="#"
+                        href={doc.file}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="block p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border border-border hover:shadow-lg hover:scale-105 transition-all duration-300"
                       >
                         <div className="flex items-center space-x-3">
                           <div className="text-2xl">📄</div>
-                          <span className="text-sm text-foreground font-medium">{doc}</span>
+                          <span className="text-sm text-foreground font-medium">{doc.title}</span>
                         </div>
                       </a>
                     ))}

@@ -2,7 +2,8 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import InfoBlocks from '@/components/InfoBlocks';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, FileText, CheckSquare, Film } from 'lucide-react'; // Добавлены иконки
+import VNOKO from '@/assets/file/Pol_VNOKO_31.08.2021.pdf';
 
 const NOKO = () => {
   return (
@@ -14,78 +15,96 @@ const NOKO = () => {
         
         <main className="flex-1 min-h-screen">
           <div className="container mx-auto px-6 py-8">
-            {/* Info Blocks */}
             <InfoBlocks />
             
             <div className="bg-white rounded-lg shadow-sm border border-border p-8">
-              <h1 className="text-3xl font-bold text-primary mb-4 text-center">НОКО</h1>
-              <p className="text-center text-muted-foreground mb-8">Независимая оценка качества образования</p>
+              <h1 className="text-3xl font-bold text-primary mb-2 text-center">Независимая оценка качества образования</h1>
+              <p className="text-center text-muted-foreground mb-10">(НОКО)</p>
               
-              <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-border/50 p-8 space-y-6">
-                <div className="bg-white rounded-lg p-6">
-                  <div className="prose prose-gray max-w-none">
-                    <p className="text-foreground leading-relaxed mb-6">
-                      Обучающиеся и их законные представители просьба пройти опрос о качестве осуществления образовательной деятельности ТТЖТ - филиала РГУПС по адресу 
-                      <a 
-                        href="https://a28476.webask.io/qpfrhskge" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-primary hover:text-primary-hover font-semibold ml-1"
-                      >
-                        https://a28476.webask.io/qpfrhskge
-                      </a>. Опрос можно пройти только с одного устройства!
-                    </p>
+              {/* ✅ ИЗМЕНЕНИЕ 1: Новый дизайн страницы с секциями */}
+              <div className="space-y-10">
 
-                    <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg p-6">
-                      <h3 className="font-semibold text-primary mb-4">Инструкция по прохождению опроса:</h3>
-                      <ol className="space-y-2 text-foreground text-sm">
-                        <li>1. В анкете выбрать категорию участника, нажать Далее</li>
-                        <li>2. Подтвердить, что Вам больше 14 лет, нажать Далее</li>
-                        <li>3. Выберите регион Краснодарский край, нажмите Далее</li>
-                        <li>4. Выберите Тихорецкий техникум железнодорожного транспорта - филиал ФГБОУ ВО "Ростовский государственный университет путей сообщения"</li>
-                        <li>5. Далее отвечаете на вопросы</li>
-                      </ol>
-                    </div>
+                {/* --- Секция опроса --- */}
+                <section className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-8 shadow-sm">
+                  <div className="flex items-center mb-6">
+                    <CheckSquare className="w-8 h-8 text-blue-600 mr-4 flex-shrink-0" />
+                    <h2 className="text-2xl font-semibold text-blue-800">Пройдите опрос о качестве образования</h2>
                   </div>
-                </div>
+                  <p className="text-gray-700 leading-relaxed mb-6">
+                    Уважаемые обучающиеся и их законные представители! Просьба пройти опрос о качестве осуществления образовательной деятельности ТТЖТ - филиала РГУПС по ссылке:
+                    <a 
+                      href="https://a28476.webask.io/qpfrhskge" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 font-semibold ml-1 break-all inline-flex items-center"
+                    >
+                      https://a28476.webask.io/qpfrhskge <ExternalLink className="w-4 h-4 ml-1 flex-shrink-0" />
+                    </a>.
+                    <br/>
+                    <span className="font-medium text-red-600">Опрос можно пройти только с одного устройства!</span>
+                  </p>
 
-                {/* PDF документы */}
-                <div className="bg-white rounded-lg p-6">
-                  <h3 className="text-xl font-semibold text-primary mb-6 text-center">Документы</h3>
+                  <div className="bg-white rounded-lg p-6 border border-blue-100">
+                    <h3 className="font-semibold text-blue-700 mb-4">Инструкция по прохождению опроса:</h3>
+                    <ol className="space-y-2 text-gray-600 text-sm list-decimal list-inside">
+                      <li>В анкете выбрать категорию участника, нажать Далее.</li>
+                      <li>Подтвердить, что Вам больше 14 лет, нажать Далее.</li>
+                      <li>Выберите регион <span className="font-medium">Краснодарский край</span>, нажмите Далее.</li>
+                      <li>Выберите <span className="font-medium">Тихорецкий техникум железнодорожного транспорта - филиал ФГБОУ ВО "Ростовский государственный университет путей сообщения"</span>.</li>
+                      <li>Далее отвечаете на вопросы анкеты.</li>
+                    </ol>
+                  </div>
+                </section>
+
+                {/* --- Секция документов --- */}
+                <section className="bg-gradient-to-br from-green-50 to-teal-50 rounded-xl border border-green-200 p-8 shadow-sm">
+                   <div className="flex items-center mb-6">
+                     <FileText className="w-8 h-8 text-green-600 mr-4 flex-shrink-0" />
+                    <h2 className="text-2xl font-semibold text-green-800">Нормативные документы</h2>
+                  </div>
                   <div className="space-y-4">
+                    {/* ✅ ИСПРАВЛЕНИЕ 2: Подключен локальный PDF */}
                     <a
-                      href="#"
-                      className="block p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border border-border hover:shadow-lg hover:scale-105 transition-all duration-300"
+                      href={VNOKO}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-green-400 hover:shadow-md transition-all duration-300 group transform hover:-translate-y-1"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="text-2xl">📄</div>
-                          <span className="text-foreground font-medium">Положение о проведении внутренней независимой оценки качества образования в ТТЖТ - филиале РГУПС</span>
-                        </div>
-                        <ExternalLink className="w-5 h-5 text-primary" />
-                      </div>
+                      <span className="text-foreground font-medium group-hover:text-green-700 transition-colors">Положение о проведении внутренней независимой оценки качества образования в ТТЖТ - филиале РГУПС</span>
+                      <FileText className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors flex-shrink-0 ml-4" />
                     </a>
 
+                    {/* ✅ ИСПРАВЛЕНИЕ 3: Подключена внешняя ссылка на PDF */}
                     <a
-                      href="#"
-                      className="block p-4 bg-gradient-to-r from-secondary/5 to-accent/5 rounded-lg border border-border hover:shadow-lg hover:scale-105 transition-all duration-300"
+                      href="https://rgups.ru/site/assets/files/90788/othet_o_samoobsledovanii_26_03_2024.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:border-green-400 hover:shadow-md transition-all duration-300 group transform hover:-translate-y-1"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="text-2xl">📄</div>
-                          <span className="text-foreground font-medium">Отчет о результатах самообследования</span>
-                        </div>
-                        <ExternalLink className="w-5 h-5 text-primary" />
-                      </div>
+                      <span className="text-foreground font-medium group-hover:text-green-700 transition-colors">Отчет о результатах самообследования</span>
+                      <ExternalLink className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors flex-shrink-0 ml-4" />
                     </a>
                   </div>
-                </div>
+                </section>
 
-                {/* Видео ролик */}
-                <div className="bg-white rounded-lg p-6 text-center">
-                  <h3 className="text-lg font-semibold text-primary mb-4">Дополнительные материалы</h3>
-                  <p className="text-foreground">Ролик о проведении независимой оценки качества условий осуществления образовательной деятельности организациями</p>
-                </div>
+                {/* --- Секция видео ролика --- */}
+                {/* ✅ ИСПРАВЛЕНИЕ 4: Секция сделана кликабельной ссылкой */}
+                <a
+                  href="https://open.edu.gov.ru/quality-of-education/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 p-8 shadow-sm hover:shadow-lg hover:border-purple-400 transition-all duration-300 group transform hover:-translate-y-1"
+                >
+                   <div className="flex items-center mb-4">
+                     <Film className="w-8 h-8 text-purple-600 mr-4 flex-shrink-0" />
+                    <h2 className="text-2xl font-semibold text-purple-800 group-hover:text-purple-900 transition-colors">Дополнительные материалы</h2>
+                  </div>
+                  <p className="text-gray-700 group-hover:text-gray-800 transition-colors flex items-center justify-between">
+                    <span>Ролик о проведении независимой оценки качества условий осуществления образовательной деятельности организациями</span>
+                    <ExternalLink className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors flex-shrink-0 ml-4" />
+                  </p>
+                </a>
+
               </div>
             </div>
           </div>

@@ -2,297 +2,156 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import InfoBlocks from '@/components/InfoBlocks';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, FileText } from 'lucide-react';
+
+// ✅ ИСПРАВЛЕНИЕ 1: Опечатка в именах переменных (кириллическая 'о' заменена на латинскую 'o')
+import doc_1 from '@/assets/file/Spisok_EOR_08.02.01.pdf';
+import doc_2 from '@/assets/file/Spisok_EOR_08.02.10.pdf';
+import doc_3 from '@/assets/file/Spisok_EOR_09.02.01.pdf';
+import doc_4 from '@/assets/file/Spisok_EOR_11.02.06.pdf';
+import doc_5 from '@/assets/file/Spisok_EOR_13.02.07.pdf';
+import doc_6 from '@/assets/file/Spisok_EOR_22.02.06.pdf';
+import doc_7 from '@/assets/file/Spisok_EOR_23.02.01.pdf';
+import doc_8 from '@/assets/file/Spisok_EOR_23.02.04.pdf';
+import doc_9 from '@/assets/file/Spisok_EOR_23.02.06.01.pdf';
+import doc_10 from '@/assets/file/Spisok_EOR_23.02.06.03.pdf';
+import doc_11 from '@/assets/file/Spisok_EOR_27.02.03.pdf';
+import doc_12 from '@/assets/file/Spisok_EOR_38.02.01.pdf';
+import dogovor from '@/assets/file/Dogovor_Internet_2025.pdf';
+import pol_1 from '@/assets/file/pologenieoEOISN_TTGT_2023.pdf';
+import pol_2 from '@/assets/file/Pologenie_EIOS_izm_15.05.2024.pdf';
 
 const IOS = () => {
-  const resources = [
-    {
-      id: 1,
-      title: 'Договор на оказание услуг по доступу к сети Интернет на 2025 г.',
-      url: '#',
-      type: 'pdf'
-    },
-    {
-      id: 2,
-      title: 'Положение об электронной информационно-образовательной среде ТТЖТ - филиала РГУПС',
-      url: '#',
-      type: 'pdf'
-    },
-    {
-      id: 3,
-      title: 'Изменения в Положение об электронной информационно-образовательной среде ТТЖТ - филиала РГУПС',
-      url: '#',
-      type: 'pdf'
-    },
-    {
-      id: 4,
-      title: 'Электронная библиотека УМЦ ЖДТ',
-      url: 'http://umczdt.ru/books/',
-      type: 'link'
-    },
-    {
-      id: 5,
-      title: 'Электронно-библиотечная система Лань',
-      url: 'https://e.lanbook.com',
-      type: 'link'
-    },
-    {
-      id: 6,
-      title: 'Электронно-библиотечная система IPR SMART',
-      url: 'http://www.iprbookshop.ru/',
-      type: 'link'
-    },
-    {
-      id: 7,
-      title: 'Образовательная платформа Юрайт',
-      url: 'https://urait.ru/',
-      type: 'link'
-    },
-    {
-      id: 8,
-      title: 'Электронный архив и база данных СМИ для развития бизнеса Public.ru',
-      url: 'https://rgups.public.ru/',
-      type: 'link'
-    },
-    {
-      id: 9,
-      title: 'Национальная электронная библиотека',
-      url: 'https://rusneb.ru/',
-      type: 'link'
-    },
-    {
-      id: 10,
-      title: 'Электронно-образовательная среда ТТЖТ',
-      url: 'http://tihtgt.ru/',
-      type: 'link'
-    },
-    {
-      id: 11,
-      title: '"Сетевой город.Образование". Модуль ПОО',
-      url: 'https://spo.rso23.ru',
-      type: 'link'
-    },
-    {
-      id: 12,
-      title: 'ФГИС "Моя школа"',
-      url: 'https://myschool.edu.ru',
-      type: 'link'
-    },
-    {
-      id: 13,
-      title: 'Дистанционные образовательные технологии в ТТЖТ',
-      url: 'http://дистанционное24.рф',
-      type: 'link'
-    },
-    {
-      id: 14,
-      title: 'информационно-коммуникативная образовательная платформа «Сферум»',
-      url: 'http://sferum.ru/',
-      type: 'link'
-    }
+  // ✅ ИСПРАВЛЕНИЕ 2: Данные реструктурированы для удобства и правильного связывания с файлами
+  const mainDocuments = [
+    { title: 'Договор на оказание услуг по доступу к сети Интернет на 2025 г.', file: dogovor },
+    { title: 'Положение об электронной информационно-образовательной среде ТТЖТ - филиала РГУПС', file: pol_1 },
+    { title: 'Изменения в Положение об электронной информационно-образовательной среде ТТЖТ - филиала РГУПС', file: pol_2 },
   ];
 
-  const specialties = [
-    '08.02.01 Строительство и эксплуатация зданий и сооружений',
-    '09.02.01 Компьютерные системы и комплексы',
-    '11.02.06 Техническая эксплуатация транспортного радиоэлектронного оборудования (по видам транспорта)',
-    '13.02.07 Электроснабжение',
-    '15.02.19 Сварочное производство',
-    '23.02.01 Организация перевозок и управление на транспорте (по видам)',
-    '23.02.04 Техническая эксплуатация подъемно-транспортных, строительных, дорожных машин и оборудования (по отраслям)',
-    '23.02.06 Техническая эксплуатация подвижного состава железных дорог (электроподвижной состав)',
-    '23.02.06 Техническая эксплуатация подвижного состава железных дорог (вагоны)',
-    '23.02.08 Строительство железных дорог, путь и путевое хозяйство',
-    '27.02.03 Автоматика и телемеханика на транспорте (железнодорожном транспорте)',
-    '38.02.01 Экономика и бухгалтерский учет (по отраслям)'
+  const specialtyResources = [
+    { title: '08.02.01 Строительство и эксплуатация зданий и сооружений', file: doc_1 },
+    { title: '08.02.10 Строительство железных дорог, путь и путевое хозяйство', file: doc_2 },
+    { title: '09.02.01 Компьютерные системы и комплексы', file: doc_3 },
+    { title: '11.02.06 Техническая эксплуатация транспортного радиоэлектронного оборудования', file: doc_4 },
+    { title: '13.02.07 Электроснабжение', file: doc_5 },
+    { title: '22.02.06 Сварочное производство', file: doc_6 },
+    { title: '23.02.01 Организация перевозок и управление на транспорте', file: doc_7 },
+    { title: '23.02.04 Техническая эксплуатация подъемно-транспортных, строительных, дорожных машин', file: doc_8 },
+    { title: '23.02.06 Техническая эксплуатация подвижного состава (электроподвижной состав)', file: doc_9 },
+    { title: '23.02.06 Техническая эксплуатация подвижного состава (вагоны)', file: doc_10 },
+    { title: '27.02.03 Автоматика и телемеханика на транспорте', file: doc_11 },
+    { title: '38.02.01 Экономика и бухгалтерский учет', file: doc_12 },
+  ];
+
+  const externalLibraries = [
+    { title: 'Электронная библиотека УМЦ ЖДТ', url: 'http://umczdt.ru/books/' },
+    { title: 'Электронно-библиотечная система Лань', url: 'https://e.lanbook.com' },
+    { title: 'Электронно-библиотечная система IPR SMART', url: 'http://www.iprbookshop.ru/' },
+    { title: 'Образовательная платформа Юрайт', url: 'https://urait.ru/' },
+    { title: 'Электронный архив и база данных СМИ Public.ru', url: 'https://rgups.public.ru/' },
+    { title: 'Национальная электронная библиотека', url: 'https://rusneb.ru/' },
+  ];
+  
+  const internalSystems = [
+    { title: 'Электронно-образовательная среда ТТЖТ', url: 'http://tihtgt.ru/' },
+    { title: '"Сетевой город.Образование". Модуль ПОО', url: 'https://spo.rso23.ru' },
+    { title: 'ФГИС "Моя школа"', url: 'https://myschool.edu.ru' },
+    { title: 'Дистанционные образовательные технологии в ТТЖТ', url: 'http://дистанционное24.рф' },
+    { title: 'Информационно-коммуникативная образовательная платформа «Сферум»', url: 'http://sferum.ru/' },
   ];
 
   const federalResources = [
-    { title: 'Министерства науки и высшего образования Российской Федерации', url: '#' },
-    { title: 'Министерство просвещения Российской Федерации', url: '#' },
-    { title: 'Федеральная служба по надзору в сфере образования и науки', url: '#' },
-    { title: 'Федеральный портал «Российское образование»', url: '#' },
-    { title: 'Информационная система «Единое окно доступа к образовательным ресурсам»', url: '#' },
-    { title: 'Федеральный центр информационно-образовательных ресурсов', url: '#' },
-    { title: 'Единая коллекция цифровых образовательных ресурсов', url: '#' }
+    { title: 'Министерство науки и высшего образования Российской Федерации', url: 'https://minobrnauki.gov.ru/' },
+    { title: 'Министерство просвещения Российской Федерации', url: 'https://edu.gov.ru/' },
+    { title: 'Федеральная служба по надзору в сфере образования и науки', url: 'https://obrnadzor.gov.ru/' },
+    { title: 'Федеральный портал «Российское образование»', url: 'https://www.edu.ru/' },
+    { title: 'Информационная система «Единое окно доступа к образовательным ресурсам»', url: 'http://window.edu.ru/' },
+    { title: 'Федеральный центр информационно-образовательных ресурсов', url: 'http://fcior.edu.ru/' },
+    { title: 'Единая коллекция цифровых образовательных ресурсов', url: 'http://school-collection.edu.ru/' }
   ];
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
       <div className="flex">
         <Sidebar />
-        
         <main className="flex-1 min-h-screen">
           <div className="container mx-auto px-6 py-8">
-            {/* Info Blocks */}
             <InfoBlocks />
             
             <div className="bg-white rounded-lg shadow-sm border border-border p-8">
-              <h1 className="text-3xl font-bold text-primary mb-8 text-center">Электронная ИОС</h1>
-              <p className="text-center text-muted-foreground mb-8">Электронная информационно-образовательная среда</p>
+              <h1 className="text-3xl font-bold text-primary mb-2 text-center">Электронная информационно-образовательная среда</h1>
+              <p className="text-center text-muted-foreground mb-12">Доступ к информационным системам и образовательным ресурсам</p>
               
-              <div className="space-y-8">
-                {/* Наличие доступа к сети Интернет */}
-                <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-border/50 p-6">
-                  <h2 className="text-xl font-semibold text-primary mb-4">Наличие доступа к сети Интернет в ТТЖТ - филиале РГУПС:</h2>
-                  <a
-                    href="#"
-                    className="inline-flex items-center space-x-2 text-foreground hover:text-primary transition-colors"
-                  >
-                    <span>Договор на оказание услуг по доступу к сети Интернет на 2025 г.</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
+              {/* ✅ ИЗМЕНЕНИЕ 3: Полностью новый дизайн страницы */}
+              <div className="space-y-12">
 
-                {/* Локальный нормативный правовой акт */}
-                <div className="bg-gradient-to-br from-secondary/5 to-accent/5 rounded-xl border border-border/50 p-6">
-                  <h2 className="text-xl font-semibold text-primary mb-4">Локальный нормативный правовой акт об электронной информационно-образовательной среде:</h2>
-                  <div className="space-y-2">
-                    <a
-                      href="#"
-                      className="block text-foreground hover:text-primary transition-colors"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <span>Положение об электронной информационно-образовательной среде ТТЖТ - филиала РГУПС</span>
-                        <ExternalLink className="w-4 h-4" />
-                      </div>
-                    </a>
-                    <a
-                      href="#"
-                      className="block text-foreground hover:text-primary transition-colors"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <span>Изменения в Положение об электронной информационно-образовательной среде ТТЖТ - филиала РГУПС</span>
-                        <ExternalLink className="w-4 h-4" />
-                      </div>
-                    </a>
-                  </div>
-                </div>
-
-                {/* Доступ к цифровым электронным библиотекам */}
-                <div className="bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-border/50 p-6">
-                  <h2 className="text-xl font-semibold text-primary mb-4">Доступ к цифровым электронным библиотекам:</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {resources.slice(3, 9).map((resource) => (
-                      <a
-                        key={resource.id}
-                        href={resource.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors p-3 bg-white rounded-lg border border-border hover:shadow-md"
-                      >
-                        <span className="text-sm">{resource.title}</span>
-                        <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                {/* --- Секция основных документов --- */}
+                <section>
+                  <h2 className="text-2xl font-semibold text-gray-800 mb-6 border-l-4 border-primary pl-4">Основные документы</h2>
+                  <div className="space-y-3">
+                    {mainDocuments.map((doc, index) => (
+                      <a key={index} href={doc.file} target="_blank" rel="noopener noreferrer" className="flex items-center p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 hover:border-primary/50 transition-all duration-300 group">
+                        <FileText className="w-6 h-6 text-primary mr-4 flex-shrink-0" />
+                        <span className="text-foreground group-hover:text-primary transition-colors">{doc.title}</span>
                       </a>
                     ))}
                   </div>
-                </div>
+                </section>
 
-                {/* Доступ к электронным образовательным ресурсам */}
-                <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-border/50 p-6">
-                  <h2 className="text-xl font-semibold text-primary mb-4">Доступ к электронным образовательным ресурсам и (или) профессиональным базам данных:</h2>
-                  <a
-                    href="http://tihtgt.ru/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-2 text-foreground hover:text-primary transition-colors mb-6"
-                  >
-                    <span>Электронно-образовательная среда ТТЖТ</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {specialties.map((specialty, index) => (
-                      <div key={index} className="text-sm text-foreground bg-white rounded-lg p-3 border border-border">
-                        {specialty}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Доступ к электронной системе учета */}
-                <div className="bg-gradient-to-br from-secondary/5 to-accent/5 rounded-xl border border-border/50 p-6">
-                  <h2 className="text-xl font-semibold text-primary mb-4">Доступ к электронной системе учета обучающихся, учета и хранения их образовательных результатов</h2>
-                  <div className="space-y-2">
-                    <a
-                      href="https://spo.rso23.ru"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-foreground hover:text-primary transition-colors"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <span>"Сетевой город.Образование". Модуль ПОО</span>
-                        <ExternalLink className="w-4 h-4" />
-                      </div>
-                    </a>
-                    <a
-                      href="https://myschool.edu.ru"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-foreground hover:text-primary transition-colors"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <span>ФГИС "Моя школа"</span>
-                        <ExternalLink className="w-4 h-4" />
-                      </div>
-                    </a>
-                  </div>
-                </div>
-
-                {/* Доступ к дистанционным образовательным технологиям */}
-                <div className="bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-border/50 p-6">
-                  <h2 className="text-xl font-semibold text-primary mb-4">Доступ к дистанционным образовательным технологиям:</h2>
-                  <a
-                    href="http://дистанционное24.рф"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-2 text-foreground hover:text-primary transition-colors"
-                  >
-                    <span>Дистанционные образовательные технологии в ТТЖТ</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
-
-                {/* Взаимодействие педагогических работников с обучающимися */}
-                <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-border/50 p-6">
-                  <h2 className="text-xl font-semibold text-primary mb-4">Взаимодействие педагогических работников с обучающимися (личные кабинеты обучающихся и преподавателей):</h2>
-                  <a
-                    href="http://sferum.ru/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center space-x-2 text-foreground hover:text-primary transition-colors"
-                  >
-                    <span>информационно-коммуникативная образовательная платформа «Сферум»</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
-
-                {/* Доступ к учебным планам */}
-                <div className="bg-gradient-to-br from-secondary/5 to-accent/5 rounded-xl border border-border/50 p-6">
-                  <h2 className="text-xl font-semibold text-primary mb-4">Доступ к учебным планам, рабочим программам учебных дисциплин (модулей), практик</h2>
-                  <h2 className="text-xl font-semibold text-primary mb-4">Доступ к расписанию занятий, заменам</h2>
-                </div>
-
-                {/* Перечень электронных ресурсов */}
-                <div className="bg-gradient-to-br from-accent/5 to-primary/5 rounded-xl border border-border/50 p-6">
-                  <h2 className="text-xl font-semibold text-primary mb-4">Перечень электронных ресурсов, к которым обеспечивается доступ обучающихся</h2>
+                {/* --- Секция ресурсов по специальностям --- */}
+                <section>
+                  <h2 className="text-2xl font-semibold text-gray-800 mb-6 border-l-4 border-primary pl-4">Списки электронных образовательных ресурсов по специальностям</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {federalResources.map((resource, index) => (
-                      <a
-                        key={index}
-                        href={resource.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center space-x-2 text-foreground hover:text-primary transition-colors p-3 bg-white rounded-lg border border-border hover:shadow-md"
-                      >
-                        <span className="text-sm">{resource.title}</span>
-                        <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                    {specialtyResources.map((res, index) => (
+                       <a key={index} href={res.file} target="_blank" rel="noopener noreferrer" className="flex items-center p-4 bg-white rounded-lg border border-gray-200 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300 group transform hover:scale-[1.02]">
+                        <FileText className="w-5 h-5 text-gray-400 group-hover:text-primary mr-3 flex-shrink-0 transition-colors" />
+                        <span className="text-sm text-foreground">{res.title}</span>
                       </a>
                     ))}
                   </div>
+                </section>
+
+                {/* --- Секция внешних библиотек и внутренних систем --- */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                  <section>
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-6 border-l-4 border-primary pl-4">Внешние электронные библиотеки и платформы</h2>
+                    <div className="space-y-3">
+                      {externalLibraries.map((lib, index) => (
+                        <a key={index} href={lib.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-primary/50 transition-all duration-300 group">
+                          <span className="text-foreground">{lib.title}</span>
+                          <ExternalLink className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
+                        </a>
+                      ))}
+                    </div>
+                  </section>
+                  <section>
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-6 border-l-4 border-primary pl-4">Внутренние информационные системы</h2>
+                     <div className="space-y-3">
+                      {internalSystems.map((sys, index) => (
+                        <a key={index} href={sys.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-primary/50 transition-all duration-300 group">
+                          <span className="text-foreground">{sys.title}</span>
+                          <ExternalLink className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
+                        </a>
+                      ))}
+                    </div>
+                  </section>
                 </div>
+                
+                {/* --- Секция федеральных ресурсов --- */}
+                <section>
+                  <h2 className="text-2xl font-semibold text-gray-800 mb-6 border-l-4 border-primary pl-4">Федеральные образовательные ресурсы</h2>
+                  <div className="space-y-3">
+                    {federalResources.map((res, index) => (
+                      <a key={index} href={res.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 hover:border-primary/50 transition-all duration-300 group">
+                        <span className="text-foreground">{res.title}</span>
+                        <ExternalLink className="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" />
+                      </a>
+                    ))}
+                  </div>
+                </section>
+
               </div>
             </div>
           </div>
