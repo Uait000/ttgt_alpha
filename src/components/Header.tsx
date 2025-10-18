@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, ChevronDown } from 'lucide-react';
+import instr from '../assets/file/Instr_LK_Abiturienta.pdf';
+import centry from '../assets/file/Centry_Prit_2022-2023.pdf';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -29,6 +31,7 @@ const Header = () => {
       label: 'Студентам',
       href: '#',
       submenu: [
+        { label: 'Замены', href: '#' },
         { label: 'Правила внутреннего распорядка', href: '/internal-rules' },
         { label: 'Расписание занятий', href: '/schedule' },
         { label: 'Расписание звонков', href: '/bell-schedule' },
@@ -45,9 +48,10 @@ const Header = () => {
       href: '#',
       submenu: [
         { label: 'Личный кабинет', href: 'https://abitura.ttgt.org/abitur/profile/#/' },
-        { label: 'Инструкция к ЛК', href: '#' },
+        // --- ИСПРАВЛЕНИЕ: Прямая ссылка на файл в папке public ---
+        { label: 'Инструкция к ЛК', href: instr },
         { label: 'Контрольные цифры приема', href: '/applicants/admission-numbers' },
-        { label: 'Центр притяжения ', href: '#' },
+        { label: 'Центр притяжения ', href: centry },
         { label: 'Отборочная комиссия', href: '/applicants/selection-committee' },
         { label: 'Список лиц подавших документы', href: 'https://rgups.ru/abitur/informirovanie/filial-rgups-v-tikhoretcke/' },
         { label: 'День открытых дверей', href: '/applicants/open-day' },
@@ -82,20 +86,81 @@ const Header = () => {
 
   const navItemBaseClasses = "nav-item flex flex-col items-center justify-center text-center px-4 text-sm font-medium transition-colors hover:text-primary h-full";
 
+  const renderSubMenuItem = (subItem: { label: string; href: string }, closeMenu?: () => void) => {
+    // --- ИСПРАВЛЕНИЕ: Улучшенная логика для определения типа ссылки ---
+    // Ссылки на файлы (pdf и др.) и внешние сайты (http) будут тегом <a>
+    // Внутренние маршруты (начинаются с /) будут тегом <Link>
+    const isExternalOrFile = typeof subItem.href === 'string' && (
+      subItem.href.startsWith('http') || 
+      subItem.href.match(/\.[0-9a-z]+$/i)
+    );
+
+    if (isExternalOrFile) {
+      return (
+        <a
+          key={subItem.label}
+          href={subItem.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block px-4 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+          onClick={closeMenu}
+        >
+          {subItem.label}
+        </a>
+      );
+    } else {
+      return (
+        <Link
+          key={subItem.label}
+          to={subItem.href}
+          className="block px-4 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
+          onClick={closeMenu}
+        >
+          {subItem.label}
+        </Link>
+      );
+    }
+  };
+
+  const renderMobileSubMenuItem = (subItem: { label: string; href: string }) => {
+    const isExternalOrFile = typeof subItem.href === 'string' && (
+      subItem.href.startsWith('http') || 
+      subItem.href.match(/\.[0-9a-z]+$/i)
+    );
+    const closeMenu = () => setIsMobileMenuOpen(false);
+
+    if (isExternalOrFile) {
+      return (
+            <a
+                key={subItem.label}
+                href={subItem.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block px-8 py-2 text-sm text-muted-foreground hover:text-foreground"
+                onClick={closeMenu}
+            >
+                {subItem.label}
+            </a>
+      );
+    } else {
+       return (
+            <Link
+                key={subItem.label}
+                to={subItem.href}
+                className="block px-8 py-2 text-sm text-muted-foreground hover:text-foreground"
+                onClick={closeMenu}
+            >
+                {subItem.label}
+            </Link>
+        );
+    }
+};
+
   return (
     <header className="bg-white shadow-md border-b border-border sticky top-0 z-40">
       <div className="container mx-auto px-4">
-        {/*
-          Новая структура:
-          - Внешний div с flex justify-center items-center h-20: центрирует ВСЁ содержимое шапки
-          - Внутри него:
-            - Логотип и заголовок
-            - Desktop Navigation (с margin-left для отступа от логотипа)
-            - Mobile menu button (скрыт на lg, но позиционируется абсолютно на мобильных)
-        */}
-        <div className="relative flex justify-center items-center h-20 w-full"> {/* relative для абсолютного позиционирования кнопки мобильного меню */}
+        <div className="relative flex justify-center items-center h-20 w-full">
           
-          {/* Left side - Logo and title */}
           <Link to="/" className="flex items-center space-x-3 flex-shrink-0">
             <img 
               src="https://s2.radikal.cloud/2025/09/30/educenter-logo18562125e990d0a1.png" 
@@ -112,8 +177,7 @@ const Header = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation (скрыта на маленьких экранах) */}
-          {/* ml-10 или ml-16 для отступа от логотипа, space-x-6 для между пунктами */}
+          {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-6 h-full ml-10">
             {menuItems.map((item) => (
               <div key={item.label} className="relative group h-full flex items-center">
@@ -135,15 +199,7 @@ const Header = () => {
                         onMouseLeave={() => setOpenDropdown(null)}
                       >
                         <div className="py-2">
-                          {item.submenu.map((subItem) => (
-                            <Link
-                              key={subItem.label}
-                              to={subItem.href}
-                              className="block px-4 py-2 text-sm text-foreground hover:bg-primary/5 hover:text-primary transition-colors"
-                            >
-                              {subItem.label}
-                            </Link>
-                          ))}
+                          {item.submenu.map((subItem) => renderSubMenuItem(subItem))}
                         </div>
                       </div>
                     )}
@@ -170,7 +226,6 @@ const Header = () => {
           </nav>
 
           {/* Mobile menu button */}
-          {/* На больших экранах скрыт, на маленьких - позиционируется справа */}
           <button
             onClick={toggleMobileMenu}
             className="lg:hidden absolute right-4 inline-flex items-center justify-center p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
@@ -201,16 +256,7 @@ const Header = () => {
                       
                       {openDropdown === item.label && (
                         <div className="bg-accent/50">
-                          {item.submenu.map((subItem) => (
-                            <Link
-                              key={subItem.label}
-                              to={subItem.href}
-                              className="block px-8 py-2 text-sm text-muted-foreground hover:text-foreground"
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              {subItem.label}
-                            </Link>
-                          ))}
+                          {item.submenu.map((subItem) => renderMobileSubMenuItem(subItem))}
                         </div>
                       )}
                     </div>
@@ -244,3 +290,4 @@ const Header = () => {
 };
 
 export default Header;
+

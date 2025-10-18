@@ -2,6 +2,8 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import { Download } from 'lucide-react';
+import tikhr from '../assets/file/tikhoretck_na_us_05_ot_28_02_2025.pdf';
+import tik from '@/assets/pictures/tikhoretck_na_us_05_ot_28_02_2025.jpg';
 
 const AdmissionNumbers = () => {
   return (
@@ -18,17 +20,17 @@ const AdmissionNumbers = () => {
               
               <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-border/50 p-8">
                 {/* Document image */}
-                <div className="w-full aspect-[16/10] bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg overflow-hidden shadow-lg mb-6">
+                <div className="w-full bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg overflow-hidden shadow-lg mb-6">
                   <img
-                    src="https://images.pexels.com/photos/1181533/pexels-photo-1181533.jpeg"
+                    src= {tik}
                     alt="Контрольные цифры приема"
-                    className="w-full h-full object-cover"
+                    className="w-full h-auto"
                   />
                 </div>
 
                 <div className="text-center">
                   <a
-                    href="https://ttgt.org/images/files/Postup/tikhoretck_na_us_05_ot_28_02_2025.pdf"
+                    href= {tikhr}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center space-x-3 bg-primary hover:bg-primary-hover text-white px-8 py-4 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
