@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { contestsApi } from '@/api/contests-api';
-import type { Contest } from '@/api/config';
+import { postsApi } from '@/api/posts';
+import type { NewsPost } from '@/api/config';
+import { POST_TAGS, BASE_URL } from '@/api/config';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -10,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit, Trash2, Plus, FileText, Download } from 'lucide-react';
+import { Pencil, Trash2, Plus, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -26,43 +27,55 @@ import ContestForm from './ContestForm';
 import { Badge } from '@/components/ui/badge';
 
 export default function ContestsList() {
-  const [contests, setContests] = useState<Contest[]>([]);
+  const [posts, setPosts] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [editContest, setEditContest] = useState<Contest | null>(null);
+  const [editPost, setEditPost] = useState<NewsPost | null>(null);
   const { toast } = useToast();
 
-  const loadContests = async () => {
+  const loadPosts = async () => {
     try {
       setLoading(true);
-      const data = await contestsApi.getAll();
-      setContests(data);
+      const response = await fetch(`${BASE_URL}/content/posts/?category=3&limit=100&offset=0`);
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+
+      if (Array.isArray(data)) {
+        const normalizedPosts = data.map(post => ({
+          ...post,
+          body: (post as any).text || post.body || '',
+        }));
+        setPosts(normalizedPosts);
+      } else {
+        setPosts([]);
+      }
     } catch (error) {
       toast({
         title: 'Ошибка',
         description: 'Не удалось загрузить конкурсы',
         variant: 'destructive',
       });
+      setPosts([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadContests();
+    loadPosts();
   }, []);
 
   const handleDelete = async () => {
     if (!deleteId) return;
 
     try {
-      await contestsApi.delete(deleteId);
+      await postsApi.delete(deleteId);
       toast({
         title: 'Успешно',
         description: 'Конкурс удален',
       });
-      loadContests();
+      loadPosts();
     } catch (error) {
       toast({
         title: 'Ошибка',
@@ -74,28 +87,36 @@ export default function ContestsList() {
     }
   };
 
-  const handleEdit = (contest: Contest) => {
-    setEditContest(contest);
+  const handleEdit = (post: NewsPost) => {
+    setEditPost(post);
     setFormOpen(true);
   };
 
   const handleCreate = () => {
-    setEditContest(null);
+    setEditPost(null);
     setFormOpen(true);
   };
 
   const handleFormSuccess = () => {
     setFormOpen(false);
-    setEditContest(null);
-    loadContests();
+    setEditPost(null);
+    loadPosts();
+  };
+
+  const formatDate = (dateInSeconds: number) => {
+    if (!dateInSeconds) return '';
+    const date = new Date(dateInSeconds * 1000);
+    return date.toLocaleDateString('ru-RU', {
+      year: 'numeric', month: 'long', day: 'numeric',
+    });
   };
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Управление конкурсами</h2>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
+        <Button onClick={handleCreate} className="gap-2">
+          <Plus className="h-4 w-4" />
           Добавить конкурс
         </Button>
       </div>
@@ -108,61 +129,58 @@ export default function ContestsList() {
             <TableHeader>
               <TableRow>
                 <TableHead>Название</TableHead>
-                <TableHead>Описание</TableHead>
-                <TableHead>Файл</TableHead>
-                <TableHead>Поддокументы</TableHead>
+                <TableHead>Автор</TableHead>
+                <TableHead>Дата публикации</TableHead>
+                <TableHead>Тип поста</TableHead>
+                <TableHead>PDF документы</TableHead>
                 <TableHead className="text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {contests.length === 0 ? (
+              {posts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Нет конкурсов
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    Нет конкурсов для отображения
                   </TableCell>
                 </TableRow>
               ) : (
-                contests.map((contest) => (
-                  <TableRow key={contest.id}>
-                    <TableCell className="font-medium">{contest.title}</TableCell>
-                    <TableCell className="max-w-md truncate">
-                      {contest.description || '-'}
+                posts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium max-w-md truncate">{post.title}</TableCell>
+                    <TableCell>{post.author}</TableCell>
+                    <TableCell>{formatDate(post.publish_date)}</TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {POST_TAGS[post.type] || 'Неизвестно'}
+                      </span>
                     </TableCell>
                     <TableCell>
-                      <a
-                        href={contest.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-primary hover:underline"
-                      >
-                        <FileText className="h-4 w-4" />
-                        {contest.file_name}
-                      </a>
-                    </TableCell>
-                    <TableCell>
-                      {contest.subdocuments && contest.subdocuments.length > 0 ? (
-                        <Badge variant="secondary">
-                          {contest.subdocuments.length} документ(ов)
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">Нет</span>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {post.image_urls && post.image_urls.length > 0 ? (
+                          post.image_urls.map((url, index) => (
+                            <a
+                              key={index}
+                              href={`${BASE_URL}/files/${url}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-primary hover:underline text-sm"
+                            >
+                              <FileText className="h-4 w-4" />
+                              {index === 0 ? 'Положение' : 'Регламент'}
+                            </a>
+                          ))
+                        ) : (
+                          <span className="text-muted-foreground text-sm">Нет документов</span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(contest)}
-                        >
-                          <Edit className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(JSON.parse(JSON.stringify(post)))} className="gap-1">
+                          <Pencil className="h-4 w-4" /> Редактировать
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteId(contest.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                        <Button variant="ghost" size="sm" onClick={() => setDeleteId(post.id)} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <Trash2 className="h-4 w-4" /> Удалить
                         </Button>
                       </div>
                     </TableCell>
@@ -178,10 +196,10 @@ export default function ContestsList() {
         open={formOpen}
         onClose={() => {
           setFormOpen(false);
-          setEditContest(null);
+          setEditPost(null);
         }}
         onSuccess={handleFormSuccess}
-        editContest={editContest}
+        editPost={editPost}
       />
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
@@ -189,7 +207,7 @@ export default function ContestsList() {
           <AlertDialogHeader>
             <AlertDialogTitle>Удалить конкурс?</AlertDialogTitle>
             <AlertDialogDescription>
-              Это действие нельзя отменить. Конкурс и все его поддокументы будут удалены навсегда.
+              Это действие нельзя отменить. Конкурс будет удален навсегда.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { professionalsApi } from '@/api/professionals-api';
-import type { Professional } from '@/api/config';
+import { postsApi } from '@/api/posts';
+import type { NewsPost } from '@/api/config';
+import { POST_TAGS } from '@/api/config';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -10,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Pencil, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -23,53 +24,57 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import ProfessionalForm from './ProfessionalForm';
-import { Badge } from '@/components/ui/badge';
-
-const CATEGORY_LABELS: Record<string, string> = {
-  achievement: 'Достижение',
-  award: 'Награда',
-  recognition: 'Признание',
-  success: 'Успех',
-};
 
 export default function ProfessionalsList() {
-  const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [posts, setPosts] = useState<NewsPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [editProfessional, setEditProfessional] = useState<Professional | null>(null);
+  const [editPost, setEditPost] = useState<NewsPost | null>(null);
   const { toast } = useToast();
 
-  const loadProfessionals = async () => {
+  const loadPosts = async () => {
     try {
       setLoading(true);
-      const data = await professionalsApi.getAll();
-      setProfessionals(data);
+      const response = await fetch('http://185.13.47.146:50123/content/posts/?category=1&limit=100&offset=0');
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+
+      if (Array.isArray(data)) {
+        const normalizedPosts = data.map(post => ({
+          ...post,
+          body: (post as any).text || post.body || '',
+        }));
+        setPosts(normalizedPosts);
+      } else {
+        setPosts([]);
+      }
     } catch (error) {
       toast({
         title: 'Ошибка',
         description: 'Не удалось загрузить профессионалов',
         variant: 'destructive',
       });
+      setPosts([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadProfessionals();
+    loadPosts();
   }, []);
 
   const handleDelete = async () => {
     if (!deleteId) return;
 
     try {
-      await professionalsApi.delete(deleteId);
+      await postsApi.delete(deleteId);
       toast({
         title: 'Успешно',
         description: 'Профессионал удален',
       });
-      loadProfessionals();
+      loadPosts();
     } catch (error) {
       toast({
         title: 'Ошибка',
@@ -81,28 +86,36 @@ export default function ProfessionalsList() {
     }
   };
 
-  const handleEdit = (professional: Professional) => {
-    setEditProfessional(professional);
+  const handleEdit = (post: NewsPost) => {
+    setEditPost(post);
     setFormOpen(true);
   };
 
   const handleCreate = () => {
-    setEditProfessional(null);
+    setEditPost(null);
     setFormOpen(true);
   };
 
   const handleFormSuccess = () => {
     setFormOpen(false);
-    setEditProfessional(null);
-    loadProfessionals();
+    setEditPost(null);
+    loadPosts();
+  };
+
+  const formatDate = (dateInSeconds: number) => {
+    if (!dateInSeconds) return '';
+    const date = new Date(dateInSeconds * 1000);
+    return date.toLocaleDateString('ru-RU', {
+      year: 'numeric', month: 'long', day: 'numeric',
+    });
   };
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Управление профессионалами</h2>
-        <Button onClick={handleCreate}>
-          <Plus className="mr-2 h-4 w-4" />
+        <Button onClick={handleCreate} className="gap-2">
+          <Plus className="h-4 w-4" />
           Добавить профессионала
         </Button>
       </div>
@@ -116,48 +129,38 @@ export default function ProfessionalsList() {
               <TableRow>
                 <TableHead>Заголовок</TableHead>
                 <TableHead>Автор</TableHead>
-                <TableHead>Категория</TableHead>
-                <TableHead>Дата</TableHead>
+                <TableHead>Дата публикации</TableHead>
+                <TableHead>Тип поста</TableHead>
                 <TableHead>Просмотры</TableHead>
                 <TableHead className="text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {professionals.length === 0 ? (
+              {posts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    Нет профессионалов
+                    Нет профессионалов для отображения
                   </TableCell>
                 </TableRow>
               ) : (
-                professionals.map((prof) => (
-                  <TableRow key={prof.id}>
-                    <TableCell className="font-medium">{prof.title}</TableCell>
-                    <TableCell>{prof.author}</TableCell>
+                posts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium max-w-md truncate">{post.title}</TableCell>
+                    <TableCell>{post.author}</TableCell>
+                    <TableCell>{formatDate(post.publish_date)}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {CATEGORY_LABELS[prof.category] || prof.category}
-                      </Badge>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {POST_TAGS[post.type] || 'Неизвестно'}
+                      </span>
                     </TableCell>
-                    <TableCell>
-                      {new Date(prof.date).toLocaleDateString('ru-RU')}
-                    </TableCell>
-                    <TableCell>{prof.views}</TableCell>
+                    <TableCell>{post.views}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEdit(prof)}
-                        >
-                          <Edit className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(JSON.parse(JSON.stringify(post)))} className="gap-1">
+                          <Pencil className="h-4 w-4" /> Редактировать
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteId(prof.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                        <Button variant="ghost" size="sm" onClick={() => setDeleteId(post.id)} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <Trash2 className="h-4 w-4" /> Удалить
                         </Button>
                       </div>
                     </TableCell>
@@ -173,10 +176,10 @@ export default function ProfessionalsList() {
         open={formOpen}
         onClose={() => {
           setFormOpen(false);
-          setEditProfessional(null);
+          setEditPost(null);
         }}
         onSuccess={handleFormSuccess}
-        editProfessional={editProfessional}
+        editPost={editPost}
       />
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

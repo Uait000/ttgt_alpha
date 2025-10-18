@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { professionalsApi, type CreateProfessionalPayload } from '@/api/professionals-api';
-import type { Professional, Teacher } from '@/api/config';
+import { postsApi, type CreatePostPayload, ConflictError } from '@/api/posts';
+import { teachersApi } from '@/api/teachers';
+import type { NewsPost, Teacher } from '@/api/config';
+import { POST_TAGS } from '@/api/config';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,141 +34,180 @@ interface ProfessionalFormProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  editProfessional?: Professional | null;
+  editPost?: NewsPost | null;
 }
 
-const CATEGORIES = [
-  { value: 'achievement', label: 'Достижение' },
-  { value: 'award', label: 'Награда' },
-  { value: 'recognition', label: 'Признание' },
-  { value: 'success', label: 'Успех' },
-];
-
-// --- ИЗМЕНЕНИЕ №1: Добавляем функцию для форматирования ФИО ---
-const formatTeacherName = (teacher: Teacher) => {
-  if (!teacher || !teacher.second_name || !teacher.first_name) return '';
-  return `${teacher.second_name} ${teacher.first_name[0]}. ${teacher.middle_name ? teacher.middle_name[0] + '.' : ''}`;
-};
-
-
-export default function ProfessionalForm({
-  open,
-  onClose,
-  onSuccess,
-  editProfessional
-}: ProfessionalFormProps) {
+export default function ProfessionalForm({ open, onClose, onSuccess, editPost }: ProfessionalFormProps) {
   const [loading, setLoading] = useState(false);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [authors, setAuthors] = useState<Teacher[]>([]);
+  const [titleError, setTitleError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState<CreateProfessionalPayload>({
+  const [formData, setFormData] = useState<CreatePostPayload>({
     title: '',
-    body: '',
+    content: '',
     author: '',
-    category: 'achievement',
+    type: 0,
+    image_urls: [],
+    date: new Date().toISOString(),
+    category: 1,
   });
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    const loadAuthors = async () => {
+    const loadTeachers = async () => {
       try {
-        const { teachersApi } = await import('@/api/teachers');
-        const teachersList = await teachersApi.getAll();
-        setAuthors(teachersList);
+        const teachersList = await teachersApi.getAll({ limit: 1000 });
+        setTeachers(teachersList);
       } catch (error) {
-        // --- ИЗМЕНЕНИЕ №2: Исправляем заглушку под новый формат данных ---
-        setAuthors([
-          { id: 1, first_name: 'Администрация', second_name: '', middle_name: '' },
-          { id: 2, first_name: 'Учебный', second_name: 'отдел', middle_name: '' }
-        ]);
+        console.error('Failed to load teachers:', error);
+        toast({ title: 'Ошибка', description: 'Не удалось загрузить список авторов', variant: 'destructive' });
       }
     };
-    loadAuthors();
-  }, []);
+    loadTeachers();
+  }, [toast]);
 
   useEffect(() => {
-    if (editProfessional) {
-      const profDate = new Date(editProfessional.date * 1000);
+    setTitleError(null);
+
+    if (open && editPost) {
+      const postDate = new Date(editPost.publish_date * 1000);
+      const contentText = (editPost as any).text || editPost.body || '';
 
       setFormData({
-        title: editProfessional.title,
-        body: editProfessional.body,
-        author: editProfessional.author,
-        category: editProfessional.category,
+        title: editPost.title,
+        content: contentText,
+        author: editPost.author,
+        type: editPost.type,
+        image_urls: editPost.image_urls || [],
+        date: postDate.toISOString(),
+        category: 1,
       });
-      setSelectedDate(profDate);
+      setSelectedDate(postDate);
       setImageFiles([]);
-    } else {
+    } else if (open && !editPost) {
       setFormData({
         title: '',
-        body: '',
-        // --- ИЗМЕНЕНИЕ №3: Используем функцию форматирования для автора по умолчанию ---
-        author: authors.length > 0 ? formatTeacherName(authors[0]) : '',
-        category: 'achievement',
+        content: '',
+        author: teachers.length > 0 ? teachers[0].initials : '',
+        type: 0,
+        image_urls: [],
+        date: new Date().toISOString(),
+        category: 1,
       });
       setSelectedDate(new Date());
       setImageFiles([]);
     }
-  }, [editProfessional, open, authors]);
+  }, [editPost, open, teachers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setTitleError(null);
 
-    if (!(formData.title || '').trim() || !(formData.body || '').trim() || !formData.author) {
-      toast({
-        title: 'Ошибка',
-        description: 'Пожалуйста, заполните все обязательные поля (*)',
-        variant: 'destructive',
-      });
+    if (!(formData.title || '').trim() || !(formData.content || '').trim() || !formData.author) {
+      toast({ title: 'Ошибка', description: 'Пожалуйста, заполните все обязательные поля (*)', variant: 'destructive' });
       return;
     }
 
     setLoading(true);
     try {
-      const payload: CreateProfessionalPayload & { date: number } = {
+      const payload: CreatePostPayload = {
         ...formData,
-        date: Math.floor(selectedDate.getTime() / 1000),
+        date: selectedDate.toISOString(),
       };
 
-      if (editProfessional) {
-        await professionalsApi.update(
-          editProfessional.id,
-          payload,
-          imageFiles.length > 0 ? imageFiles : undefined
-        );
-        toast({ title: 'Успешно', description: 'Запись обновлена' });
+      if (imageFiles.length > 0) {
+        delete (payload as Partial<CreatePostPayload>).image_urls;
+      }
+
+      if (editPost) {
+        await postsApi.update(editPost.id, payload, imageFiles.length > 0 ? imageFiles : undefined);
+        toast({ title: 'Успешно', description: 'Профессионал обновлен' });
       } else {
-        await professionalsApi.create(payload, imageFiles.length > 0 ? imageFiles : undefined);
-        toast({ title: 'Успешно', description: 'Запись создана' });
+        await postsApi.create(payload, imageFiles.length > 0 ? imageFiles : undefined);
+        toast({ title: 'Успешно', description: 'Профессионал создан' });
       }
       onSuccess();
     } catch (error) {
-      toast({ title: 'Ошибка', description: error instanceof Error ? error.message : 'Не удалось сохранить', variant: 'destructive' });
+      if (error instanceof ConflictError) {
+        setTitleError(error.message);
+      } else {
+        toast({ title: 'Ошибка', description: error instanceof Error ? error.message : 'Не удалось сохранить профессионала', variant: 'destructive' });
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleClose = () => {
+    setFormData({
+      title: '',
+      content: '',
+      author: teachers.length > 0 ? teachers[0].initials : '',
+      type: 0,
+      image_urls: [],
+      date: new Date().toISOString(),
+      category: 1,
+    });
+    setSelectedDate(new Date());
+    setImageFiles([]);
+    setTitleError(null);
+    onClose();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editProfessional ? 'Редактировать запись' : 'Создать запись'}</DialogTitle>
-          <DialogDescription>Заполните форму для {editProfessional ? 'обновления' : 'создания'} записи о профессионале</DialogDescription>
+          <DialogTitle>{editPost ? 'Редактировать профессионала' : 'Добавить профессионалов'}</DialogTitle>
+          <DialogDescription>Заполните форму для {editPost ? 'обновления' : 'создания'} профессионала</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Заголовок *</Label>
-            <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Введите заголовок" required />
+            <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Введите заголовок профессионала" required />
+            {titleError && (
+              <p className="text-sm font-medium text-destructive">{titleError}</p>
+            )}
           </div>
 
-          <RichTextEditor value={formData.body} onChange={(value) => setFormData({ ...formData, body: value })} label="Описание *" placeholder="Полный текст о профессионале" required rows={8} />
-          
+          <RichTextEditor value={formData.content} onChange={(value) => setFormData({ ...formData, content: value })} label="Основной текст *" placeholder="Полный текст о профессионале" required rows={8} />
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="author">Автор *</Label>
+              <Select value={formData.author} onValueChange={(value) => setFormData({ ...formData, author: value })}>
+                <SelectTrigger><SelectValue placeholder="Выберите автора" /></SelectTrigger>
+                <SelectContent>
+                  {teachers.map((teacher) => (
+                    <SelectItem key={teacher.id} value={teacher.initials}>
+                      {teacher.initials}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="type">Тип поста *</Label>
+              <Select value={formData.type.toString()} onValueChange={(value) => setFormData({ ...formData, type: parseInt(value) })}>
+                <SelectTrigger><SelectValue placeholder="Выберите тип" /></SelectTrigger>
+                <SelectContent>
+                  {POST_TAGS.map((tag, index) => (
+                    <SelectItem key={index} value={index.toString()}>
+                      {tag}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label>Дата</Label>
+            <Label>Дата публикации *</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal">
@@ -180,45 +221,11 @@ export default function ProfessionalForm({
             </Popover>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="author">Автор *</Label>
-              <Select value={formData.author} onValueChange={(value) => setFormData({ ...formData, author: value })}>
-                <SelectTrigger><SelectValue placeholder="Выберите автора" /></SelectTrigger>
-                <SelectContent>
-                  {/* --- ИЗМЕНЕНИЕ №4: Форматируем ФИО в списке --- */}
-                  {authors.map((author) => {
-                    const formattedName = formatTeacherName(author);
-                    return (
-                      <SelectItem key={author.id} value={formattedName}>
-                        {formattedName}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">Категория *</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value as any })}>
-                <SelectTrigger><SelectValue placeholder="Выберите категорию" /></SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <MultipleFileUpload value={[]} onChange={setImageFiles} label="Изображения (до 20 шт)" maxFiles={20} />
+          <MultipleFileUpload value={formData.image_urls} onChange={(files) => setImageFiles(files)} label="Изображения" maxFiles={20} />
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>Отмена</Button>
-            <Button type="submit" disabled={loading}>{loading ? 'Сохранение...' : editProfessional ? 'Обновить' : 'Создать'}</Button>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>Отмена</Button>
+            <Button type="submit" disabled={loading}>{loading ? 'Сохранение...' : editPost ? 'Обновить' : 'Создать'}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
