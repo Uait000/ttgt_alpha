@@ -58,7 +58,7 @@ const SelectionCommittee = () => {
   // Теперь content - это ReactNode (JSX), а не просто строка,
   // чтобы мы могли вставлять ссылки и списки
   const sections: { id: number; title: string; content: React.ReactNode }[] = [
-    // --- ТВОИ СТАРЫЕ БЛОКИ (СОХРАНЕНЫ) ---
+    
     {
       id: 1,
       title: 'СПЕЦИАЛЬНЫЕ ТЕЛЕФОННЫЕ ЛИНИИ ДЛЯ ОБРАЩЕНИЯ, СВЯЗАННЫЕ С ПРИЁМОМ НА ОБУЧЕНИЕ',
@@ -131,7 +131,7 @@ const SelectionCommittee = () => {
       )
     },
 
-    // --- ТВОИ НОВЫЕ БЛОКИ ---
+    
     {
         id: 7,
         title: 'РЕЖИМ РАБОТЫ ОТБОРОЧНОЙ КОМИССИИ',
