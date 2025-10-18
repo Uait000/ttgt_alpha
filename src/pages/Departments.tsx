@@ -4,7 +4,8 @@ import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Play, TrainFront, Bolt, HardHat, TrafficCone, Laptop, BookOpen, ChevronRight } from 'lucide-react';
+// ✅ Добавлены иконки для лайтбокса
+import { Play, TrainFront, Bolt, HardHat, TrafficCone, Laptop, BookOpen, ChevronRight, X, ChevronLeft } from 'lucide-react';
 import InfoBlocks from '@/components/InfoBlocks';
 
 // Импорты изображений
@@ -22,15 +23,15 @@ import gamachek from '@/assets/pictures/gamachek.png';
 const Departments = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<number | null>(null);
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
+  // ✅ Состояние для лайтбокса аватарки
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
-  // Данные отделений (с иконками и цветами)
   const departments = [
      {
       id: 1,
       name: 'Отделение технической эксплуатации подвижного состава ж/д',
-      shortName: 'Подвижной Состав',
       icon: TrainFront,
-      color: 'blue',
+      color: 'blue', // ✅ Возвращены уникальные цвета
       specialties: [
         'Техническая эксплуатация подвижного состава железных дорог (электровозы, тепловозы)',
         'Техническая эксплуатация подвижного состава железных дорог (вагоны)'
@@ -44,7 +45,6 @@ const Departments = () => {
     {
       id: 2,
       name: 'Отделение электромеханики',
-      shortName: 'Электромеханика',
       icon: Bolt,
       color: 'yellow',
       specialties: [
@@ -61,7 +61,6 @@ const Departments = () => {
      {
       id: 3,
       name: 'Строительное отделение',
-      shortName: 'Строительное',
       icon: HardHat,
       color: 'orange',
       specialties: [
@@ -77,7 +76,6 @@ const Departments = () => {
     {
       id: 4,
       name: 'Отделение автоматики и организации перевозок',
-      shortName: 'Автоматика и Перевозки',
       icon: TrafficCone,
       color: 'green',
       specialties: [
@@ -93,7 +91,6 @@ const Departments = () => {
     {
       id: 5,
       name: 'Отделение информационных технологий и экономики',
-      shortName: 'ИТ и Экономика',
       icon: Laptop,
       color: 'purple',
       specialties: [
@@ -118,13 +115,79 @@ const Departments = () => {
     setSelectedDepartment(deptId);
     setIsDescriptionOpen(true);
   };
-
+  
+  // ✅ Новая функция для красивого рендеринга описания
   const renderDescription = (description: string) => {
-    return description.split('\n').filter(p => p.trim() !== '').map((paragraph, index) => (
-      <p key={index} className="text-gray-700 leading-relaxed mb-4 text-justify text-base">
-        {paragraph}
-      </p>
-    ));
+    // Определяем ключевые фразы для заголовков
+    const headings = [
+      'Специальности:',
+      'Возглавляет отделение', 
+      'Большой вклад в развитие', 
+      'В разное время здесь трудились',
+      'В настоящее время на отделении',
+      'Достойный вклад в становление',
+      'Многие выпускники стали гордостью', 
+      'В рамках освоения специальности',
+      'Выпускники отделения востребованы',
+      'За годы работы отделения',
+      'Ведущими преподавателями являются:',
+      'Всегда интересно студентам',
+      'Студенты, обучающиеся на отделении',
+      'За период обучения студенты',
+      'Студенты техникума помнят',
+      'На этом отделении сложно',
+      'В настоящее время на отделении',
+      'Студенты принимают активное участие',
+      'За отличные успехи в учебе',
+      'За большой вклад в дело обучения',
+      'Материально-техническая база',
+      'Гордостью техникума и отделения',
+      'Наши выпускники - командиры',
+      'Построение и развитие',
+      'Область профессиональной деятельности',
+      'Динамичное развитие отрасли',
+      'В условиях высокоразвитой системы',
+    ];
+  
+    // Разделяем текст на параграфы
+    const paragraphs = description.split('\n\n');
+  
+    return paragraphs.map((paragraph, pIndex) => {
+      // Проверяем, начинается ли параграф с ключевой фразы
+      const isHeading = headings.some(h => paragraph.startsWith(h) && paragraph.length < 100); // Добавим проверку длины, чтобы не делать заголовком длинный текст
+      
+      // Проверяем, является ли параграф списком специальностей
+      if (paragraph.startsWith('Специальности:\n-')) {
+        const items = paragraph.split('\n'); // Разделяем на заголовок и пункты
+        const title = items.shift(); // Забираем 'Специальности:'
+        return (
+          <div key={pIndex} className="my-5">
+            <h3 className="text-xl font-semibold text-primary mb-3">{title}</h3>
+            <ul className="list-disc list-inside space-y-2 text-gray-700">
+              {items.map((item, iIndex) => (
+                <li key={iIndex}>{item.substring(2).trim()}</li> // Убираем '- '
+              ))}
+            </ul>
+          </div>
+        );
+      }
+      
+      // Если это заголовок
+      if (isHeading) {
+        return (
+          <h3 key={pIndex} className="text-xl font-semibold text-gray-800 mt-6 mb-3">
+            {paragraph}
+          </h3>
+        );
+      }
+      
+      // Обычный параграф
+      return (
+        <p key={pIndex} className="text-gray-700 leading-relaxed text-justify text-base mb-4">
+          {paragraph}
+        </p>
+      );
+    });
   };
 
 
@@ -148,69 +211,84 @@ const Departments = () => {
                  Исследуйте наши передовые отделения и специальности, которые формируют будущее железнодорожного транспорта и смежных отраслей.
                </p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8"> {/* Возвращаем 2 колонки для большего места */}
                 {departments.map((dept) => {
                   const IconComponent = dept.icon;
-                  const colorBase = dept.color;
-                  const gradientClass = `bg-gradient-to-br from-${colorBase}-50 via-white to-${colorBase}-100`;
-                  const borderClass = `border-${colorBase}-200`;
-                  const headTextClass = `text-${colorBase}-800`;
-                  const iconBgClass = `bg-${colorBase}-100`;
-                  const iconTextClass = `text-${colorBase}-600`;
-                  const buttonBgClass = `bg-${colorBase}-600`;
-                  // ✅ ИСПРАВЛЕНИЕ: Определяем hoverBgColor
-                  const hoverBgColor = `hover:bg-${colorBase}-700`; 
-                  const buttonOutlineClass = `border-${colorBase}-500 text-${colorBase}-700 hover:bg-${colorBase}-50`;
+                  // ✅ УНИКАЛЬНЫЕ ЦВЕТА
+                  const colors = {
+                    blue: { gradient: 'from-blue-50 to-indigo-100', border: 'border-blue-200', text: 'text-blue-800', iconBg: 'bg-blue-100', iconText: 'text-blue-600', buttonBg: 'bg-blue-600 hover:bg-blue-700', buttonOutline: 'border-blue-500 text-blue-700 hover:bg-blue-50' },
+                    yellow: { gradient: 'from-yellow-50 to-amber-100', border: 'border-yellow-200', text: 'text-amber-800', iconBg: 'bg-yellow-100', iconText: 'text-amber-600', buttonBg: 'bg-yellow-500 hover:bg-yellow-600', buttonOutline: 'border-yellow-500 text-yellow-700 hover:bg-yellow-50' },
+                    orange: { gradient: 'from-orange-50 to-red-100', border: 'border-orange-200', text: 'text-orange-800', iconBg: 'bg-orange-100', iconText: 'text-orange-600', buttonBg: 'bg-orange-500 hover:bg-orange-600', buttonOutline: 'border-orange-500 text-orange-700 hover:bg-orange-50' },
+                    green: { gradient: 'from-green-50 to-emerald-100', border: 'border-green-200', text: 'text-green-800', iconBg: 'bg-green-100', iconText: 'text-green-600', buttonBg: 'bg-green-600 hover:bg-green-700', buttonOutline: 'border-green-500 text-green-700 hover:bg-green-50' },
+                    purple: { gradient: 'from-purple-50 to-violet-100', border: 'border-purple-200', text: 'text-purple-800', iconBg: 'bg-purple-100', iconText: 'text-purple-600', buttonBg: 'bg-purple-600 hover:bg-purple-700', buttonOutline: 'border-purple-500 text-purple-700 hover:bg-purple-50' },
+                  };
+                  const theme = colors[dept.color as keyof typeof colors] || colors.blue;
 
                   return (
                     <div 
                       key={dept.id} 
-                      className={`relative ${gradientClass} rounded-2xl shadow-lg border ${borderClass} p-6 
+                      className={`relative ${theme.gradient} rounded-2xl shadow-lg border ${theme.border} p-6
                                  transform transition-all duration-300 hover:scale-[1.03] hover:shadow-xl 
                                  flex flex-col group overflow-hidden`}
                     >
-                      <div className={`absolute top-0 left-0 w-full h-1.5 ${buttonBgClass}`}></div>
+                      <div className={`absolute top-0 left-0 w-full h-2 ${theme.buttonBg}`}></div>
+
                       <div className="flex-1 flex flex-col pt-6">
-                        <div className="flex items-center space-x-4 mb-5">
-                          <div className={`relative w-16 h-16 ${iconBgClass} rounded-full p-2.5 shadow-md flex items-center justify-center flex-shrink-0 border-2 border-white ring-2 ring-${colorBase}-200`}>
+                        
+                        <div className="flex items-start space-x-4 mb-5">
+                          <div className={`relative w-20 h-20 ${theme.iconBg} rounded-full p-2.5 shadow-md flex items-center justify-center flex-shrink-0 border-2 border-white ring-2 ${theme.border}`}>
                             {dept.departmentImage ? (
                                 <img src={dept.departmentImage} alt={`Лого ${dept.name}`} className="w-full h-full object-contain"/>
                             ) : (
-                                <IconComponent className={`w-8 h-8 ${iconTextClass}`} />
+                                <IconComponent className={`w-10 h-10 ${theme.iconText}`} />
                             )}
                           </div>
-                          <h2 className={`text-xl font-bold ${headTextClass} leading-tight`}>{dept.shortName || dept.name}</h2>
+                          {/* ✅ ИСПРАВЛЕНИЕ: Полное название отделения */}
+                          <h2 className={`text-2xl font-bold ${theme.text} leading-tight`}>{dept.name}</h2>
                         </div>
-                        <div className="flex items-center space-x-3 mb-6 bg-white/50 p-3 rounded-lg border border-gray-100 shadow-sm">
-                            <img src={dept.headPhoto} alt={dept.head} className="w-20 h-20 rounded-full object-cover border-2 border-white shadow"/>
+
+                        {/* ✅ ИСПРАВЛЕНИЕ: Прямоугольная аватарка */}
+                        <div 
+                          className="flex items-center space-x-4 mb-6 bg-white/60 p-4 rounded-lg border border-gray-100 shadow-sm cursor-pointer group/avatar"
+                          onClick={(e) => { e.stopPropagation(); setLightboxImage(dept.headPhoto); }}
+                        >
+                            <div className="w-32 h-40 rounded-lg overflow-hidden flex-shrink-0 border-2 border-white shadow">
+                              <img 
+                                src={dept.headPhoto} 
+                                alt={dept.head} 
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover/avatar:scale-105"
+                              />
+                            </div>
                             <div>
-                                <p className="text-xs font-medium text-gray-500">Заведующий:</p>
-                                <p className={`text-base font-semibold ${headTextClass}`}>{dept.head}</p>
+                                <p className="text-sm font-medium text-gray-500">Заведующий:</p>
+                                <p className={`text-lg font-semibold ${theme.text}`}>{dept.head}</p>
                             </div>
                         </div>
+
                         <div className="mb-6 flex-1">
-                          <h3 className="font-semibold text-gray-600 mb-2 text-sm">Специальности:</h3>
-                          <ul className="space-y-1.5">
+                          <h3 className="font-semibold text-gray-700 mb-3 text-base">Специальности:</h3>
+                          <ul className="space-y-2">
                             {dept.specialties.map((specialty, index) => (
-                              <li key={index} className="flex items-start text-base text-gray-700">
-                                <ChevronRight className={`w-4 h-4 mr-1.5 mt-1 ${headTextClass} flex-shrink-0`} /> {specialty}
+                              <li key={index} className="flex items-start text-sm text-gray-700"> {/* Уменьшен шрифт для длинных названий */}
+                                <ChevronRight className={`w-4 h-4 mr-1.5 mt-0.5 ${theme.iconText} flex-shrink-0`} /> {specialty}
                               </li>
                             ))}
                           </ul>
                         </div>
+
                         <div className="flex flex-col sm:flex-row justify-center gap-3 mt-auto pt-4 border-t border-gray-200/60">
                           <Button 
                             onClick={() => openDescriptionModal(dept.id)}
-                            // ✅ ИСПРАВЛЕНИЕ: Используем hoverBgColor и добавляем text-white
-                            className={`${buttonBgClass} ${hoverBgColor} text-white px-5 py-2.5 text-sm rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 w-full sm:w-auto flex items-center justify-center`}
+                             // ✅ ИСПРАВЛЕНИЕ: Кнопка "Подробнее" теперь с темным текстом
+                            variant="outline"
+                            className={`${theme.buttonOutline} bg-white/80 px-5 py-2.5 text-sm rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 w-full sm:w-auto flex items-center justify-center`}
                           >
                             <BookOpen className="w-4 h-4 mr-2" />
                             Подробнее
                           </Button>
                           <Button 
                             onClick={(e) => { e.stopPropagation(); window.open(dept.videoUrl, '_blank'); }}
-                            variant="outline"
-                            className={`${buttonOutlineClass} bg-white/70 px-5 py-2.5 text-sm rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 w-full sm:w-auto flex items-center justify-center`}
+                            className={`${theme.buttonBg} ${theme.hoverBgColor} text-white px-5 py-2.5 text-sm rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 w-full sm:w-auto flex items-center justify-center`}
                           >
                             <Play className="w-4 h-4 mr-2" />
                             Визитка
@@ -230,28 +308,51 @@ const Departments = () => {
         </aside>
       </div>
 
+      {/* Диалоговое окно для Описания */}
       <Dialog open={isDescriptionOpen} onOpenChange={setIsDescriptionOpen}>
-        <DialogContent className="max-w-4xl lg:max-w-5xl max-h-[90vh] overflow-y-auto p-8 rounded-xl shadow-2xl bg-gradient-to-br from-white via-gray-50 to-gray-100">
+        <DialogContent className="max-w-4xl lg:max-w-5xl max-h-[90vh] overflow-y-auto p-8 rounded-xl shadow-2xl bg-white">
           {activeDepartment && (
             <>
               <DialogHeader className="text-center pb-4 border-b border-gray-200 mb-6 relative">
                  {activeDepartment.icon && (
-                    <div className={`absolute top-[-30px] left-1/2 transform -translate-x-1/2 w-16 h-16 bg-gradient-to-br from-${activeDepartment.color}-100 to-${activeDepartment.color}-200 rounded-full p-3 shadow-lg border-4 border-white flex items-center justify-center`}>
+                    <div className={`mx-auto w-16 h-16 bg-gradient-to-br from-${activeDepartment.color}-100 to-${activeDepartment.color}-200 rounded-full p-3 shadow-lg border-4 border-white flex items-center justify-center`}>
                        <activeDepartment.icon className={`w-8 h-8 text-${activeDepartment.color}-600`} />
                     </div>
                  )}
-                <DialogTitle className="text-3xl font-extrabold text-primary pt-10">
+                <DialogTitle className="text-3xl font-extrabold text-primary pt-4">
                   {activeDepartment.name}
                 </DialogTitle>
                 <p className="text-lg text-muted-foreground mt-2">{activeDepartment.head}</p>
               </DialogHeader>
-              <div className="prose prose-lg max-w-none text-gray-800 leading-relaxed text-justify space-y-4">
+              {/* ✅ ИСПОЛЬЗУЕМ НОВЫЙ РЕНДЕРИНГ ТЕКСТА */}
+              <div className="prose prose-lg max-w-none text-gray-800 leading-relaxed space-y-4">
                  {renderDescription(activeDepartment.description)}
               </div>
             </>
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* ✅ Лайтбокс для Аватарок */}
+      {lightboxImage && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-[80] flex items-center justify-center p-4" 
+          onClick={() => setLightboxImage(null)} // Закрытие по клику на фон
+        >
+          <img 
+            src={lightboxImage} 
+            alt="Фото заведующего" 
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()} // Не закрывать по клику на саму картинку
+          />
+          <button 
+            onClick={() => setLightboxImage(null)} 
+            className="absolute top-4 right-4 text-white bg-black/30 rounded-full p-2 hover:bg-black/50 transition-colors"
+          >
+            <X className="w-7 h-7" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
