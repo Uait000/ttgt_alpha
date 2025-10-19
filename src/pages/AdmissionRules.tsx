@@ -2,20 +2,23 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import { FileText } from 'lucide-react';
-
+import uslov from '@/assets/file/usloviia_priema_platno_2025 (1).pdf';
+import doop from '@/assets/file/dopolneniia_pp_spo_2025.pdf';
+import pravila from '@/assets/file/pravila_priema_spo_2025.pdf';
+import book from '@/assets/pictures/books-bookstore-book-reading-159711.jpeg';
 const AdmissionRules = () => {
   const documents = [
     {
       title: 'Правила приема на обучение по образовательным программам среднего профессионального образования в ФГБОУ ВО РГУПС',
-      url: 'https://ttgt.org/images/files/Postup/pravila_priema_spo_2025.pdf'
+      url: pravila
     },
     {
       title: 'Дополнения в Правила приема на обучение по образовательным программам среднего профессионального образования в ФГБОУ ВО РГУПС от 01.04.2025',
-      url: 'https://ttgt.org/images/files/Postup/dopolneniia_pp_spo_2025.pdf'
+      url: doop
     },
     {
       title: 'Условия приёма на обучение по договорам об оказании платных образовательных услуг по программам среднего профессионального образования',
-      url: 'https://ttgt.org/images/files/Postup/Documenty/usloviia_priema_platno_2025.pdf'
+      url: uslov
     }
   ];
 
@@ -35,7 +38,7 @@ const AdmissionRules = () => {
                 {/* Hero image */}
                 <div className="w-full aspect-[16/6] bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg overflow-hidden shadow-lg mb-8">
                   <img
-                    src="https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg"
+                    src= {book}
                     alt="Правила приема"
                     className="w-full h-full object-cover"
                   />
