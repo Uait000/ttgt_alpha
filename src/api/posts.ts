@@ -17,17 +17,35 @@ const getAuthHeaders = () => {
   };
 };
 
+// --- Define the expected File object structure from backend ---
+interface BackendFile {
+  id: string;
+  name: string;
+  mime: string;
+}
+
+// --- Update NewsDetailPost to expect the new 'files' structure ---
+// (Assuming your config.ts defines NewsDetailPost similarly)
+// You might need to adjust your actual NewsDetailPost type definition
+interface UpdatedNewsDetailPost extends Omit<NewsDetailPost, 'images' | 'image_urls'> {
+  files?: BackendFile[]; // Expect 'files' array from getBySlug
+  image_urls?: string[]; // Keep for compatibility if needed elsewhere temporarily
+}
+
+
 export interface CreatePostPayload {
   title: string;
   content: string;
   author: string;
   type: number;
-  image_urls?: string[];
+  // This field will now primarily hold existing file objects for update
+  files?: BackendFile[];
   date: string;
   category: number;
 }
 
 export const postsApi = {
+  // --- getAll: Adjusted to ensure 'images' array has IDs for compatibility ---
   getAll: async (params?: { limit?: number; offset?: number }): Promise<NewsPost[]> => {
     const queryParams = new URLSearchParams();
     if (params?.limit) queryParams.append('limit', params.limit.toString());
@@ -38,31 +56,76 @@ export const postsApi = {
     if (!response.ok) {
       throw new Error('Failed to fetch posts');
     }
-    return response.json();
+    const rawPosts: any[] = await response.json();
+
+    // Transform posts to include 'images' array derived from 'files' if necessary
+    const transformedPosts: NewsPost[] = rawPosts.map(post => {
+      let imageIds: string[] = post.images || []; // Use existing 'images' if available
+
+      // If 'files' exists and 'images' doesn't, create 'images' from 'files'
+      if (!post.images && post.files && Array.isArray(post.files)) {
+        imageIds = post.files
+          .filter((file: any) => file.id && file.mime?.startsWith('image/'))
+          .map((file: any) => file.id);
+      }
+      
+      // Return post with a guaranteed 'images' array for backward compatibility
+      // Keep other fields as they are from the backend
+      return {
+          ...post, // Spread all original fields
+          images: imageIds, // Ensure 'images' contains IDs
+          // Optionally keep 'files' if other parts of your app use it
+          // files: post.files 
+      };
+  });
+
+
+    return transformedPosts;
   },
 
-  getBySlug: async (slug: string): Promise<NewsDetailPost> => {
+  // --- getBySlug: Adjusted to return the 'files' array as received ---
+  getBySlug: async (slug: string): Promise<UpdatedNewsDetailPost> => {
     const response = await fetch(`${BASE_URL}/content/posts/${slug}`);
     if (!response.ok) {
       throw new Error('Failed to fetch post');
     }
-    return response.json();
+    // Assume backend now returns 'files: [{id, name, mime}]'
+    const postData: UpdatedNewsDetailPost = await response.json();
+    
+    // Add image_urls for compatibility with update form if needed
+    if (postData.files) {
+        postData.image_urls = postData.files.map(f => f.id);
+    }
+
+    return postData;
   },
 
+  // --- create: Sends 'files' array instead of 'images' ---
   create: async (payload: CreatePostPayload, imageFiles?: File[]): Promise<NewsPost> => {
-    let imageIds: string[] = [];
-    if (imageFiles && imageFiles.length > 0) {
-      const uploadPromises = imageFiles.map(file => filesApi.upload(file));
-      const uploadResults = await Promise.all(uploadPromises);
+    let filesPayload: BackendFile[] = []; // Initialize as empty array
 
-      // ↓↓↓ ИСПРАВЛЕНИЕ: Явная проверка типа в цикле ↓↓↓
-      const successfulUploads: string[] = [];
-      for (const result of uploadResults) {
-        if (typeof result === 'string' && result) {
-          successfulUploads.push(result);
+    if (imageFiles && imageFiles.length > 0) {
+      // Create upload promises
+      const uploadPromises = imageFiles.map(async (file) => {
+        try {
+          const fileId = await filesApi.upload(file); // Assume this returns only the ID (string)
+          if (typeof fileId === 'string' && fileId) {
+            // Construct the object expected by the backend
+            return {
+              id: fileId,
+              name: file.name,
+              mime: file.type || 'application/octet-stream', // Use file type as mime, fallback if needed
+            };
+          }
+        } catch (error) {
+          console.error(`Failed to upload file ${file.name}:`, error);
         }
-      }
-      imageIds = successfulUploads;
+        return null; // Return null for failed uploads
+      });
+
+      // Wait for all uploads and filter out failed ones
+      const uploadResults = await Promise.all(uploadPromises);
+      filesPayload = uploadResults.filter((result): result is BackendFile => result !== null);
     }
 
     const category = Number(payload.category);
@@ -72,6 +135,7 @@ export const postsApi = {
       throw new Error('Поля "Категория" и "Тип поста" должны быть выбраны.');
     }
 
+    // --- Send 'files' array in the payload ---
     const finalPayload = {
       title: payload.title,
       body: payload.content,
@@ -80,10 +144,11 @@ export const postsApi = {
       category: category,
       type: type,
       status: 1,
-      images: imageIds,
+      files: filesPayload, // Use the new 'files' array
+      // images: undefined // Remove old 'images' field
     };
 
-    console.log('Отправляемый Payload:', JSON.stringify(finalPayload, null, 2));
+    console.log('Отправляемый Payload (Create):', JSON.stringify(finalPayload, null, 2));
 
     const response = await fetch(`${BASE_URL}/admin/posts/`, {
       method: 'POST',
@@ -103,9 +168,11 @@ export const postsApi = {
     return response.json();
   },
 
+  // --- update: Sends 'files' array instead of 'images' ---
   update: async (id: number, payload: Partial<CreatePostPayload>, imageFiles?: File[]) => {
-    const finalPayload: any = { status: 1 };
+    const finalPayload: any = { status: 1 }; // Start with status
 
+    // --- Map standard fields ---
     if (payload.title) finalPayload.title = payload.title;
     if (payload.content) finalPayload.body = payload.content;
     if (payload.date) finalPayload.publish_date = Math.floor(new Date(payload.date).getTime() / 1000);
@@ -113,19 +180,36 @@ export const postsApi = {
     if (payload.type !== undefined) finalPayload.type = Number(payload.type);
     if (payload.category !== undefined) finalPayload.category = Number(payload.category);
     
-    let allImageIds: string[] = payload.image_urls || [];
-    if (imageFiles && imageFiles.length > 0) {
-      const uploadPromises = imageFiles.map(file => filesApi.upload(file));
-      const uploadResults = await Promise.all(uploadPromises);
+    // --- Handle Files ---
+    // Start with existing files (payload.files should be populated by getBySlug)
+    let combinedFiles: BackendFile[] = payload.files || [];
 
-      // ↓↓↓ ИСПРАВЛЕНИЕ: Явная проверка типа в цикле ↓↓↓
-      for (const result of uploadResults) {
-        if (typeof result === 'string' && result) {
-          allImageIds.push(result);
-        }
-      }
+    // Upload new files if provided
+    if (imageFiles && imageFiles.length > 0) {
+      const uploadPromises = imageFiles.map(async (file) => {
+         try {
+           const fileId = await filesApi.upload(file);
+           if (typeof fileId === 'string' && fileId) {
+             return { id: fileId, name: file.name, mime: file.type || 'application/octet-stream' };
+           }
+         } catch (error) {
+           console.error(`Failed to upload file ${file.name}:`, error);
+         }
+         return null;
+      });
+      const newUploadResults = await Promise.all(uploadPromises);
+      const successfullyUploadedFiles = newUploadResults.filter((result): result is BackendFile => result !== null);
+      
+      // Add newly uploaded files to the list
+      combinedFiles = [...combinedFiles, ...successfullyUploadedFiles];
     }
-    finalPayload.images = allImageIds;
+
+    // --- Set the final 'files' payload ---
+    finalPayload.files = combinedFiles;
+    // finalPayload.images = undefined; // Ensure old 'images' field is not sent
+
+    console.log('Отправляемый Payload (Update):', JSON.stringify(finalPayload, null, 2));
+
 
     const response = await fetch(`${BASE_URL}/admin/posts/${id}`, {
       method: 'PATCH',
@@ -134,12 +218,28 @@ export const postsApi = {
     });
 
     if (!response.ok) {
-      if (response.status === 409) {
-        throw new ConflictError('Этот slug уже занят. Пожалуйста, измените заголовок.');
-      }
-      const errorDetails = await response.json().catch(() => ({ detail: 'Unknown error' }));
-      console.error('API Error:', errorDetails);
-      throw new Error(errorDetails.detail || 'Ошибка данных запроса.');
+       // --- Enhanced Error Handling ---
+       const status = response.status;
+       let errorDetails;
+       try {
+           errorDetails = await response.json();
+           console.error(`API Error (${status}):`, errorDetails);
+       } catch (e) {
+           errorDetails = { detail: `Failed to parse error response. Status: ${status}` };
+           console.error(errorDetails.detail);
+       }
+
+       if (status === 409) {
+           throw new ConflictError(errorDetails.detail || 'Этот slug уже занят. Пожалуйста, измените заголовок.');
+       }
+       if (status === 422) {
+           // Provide more specific feedback for validation errors
+           const missingFields = errorDetails.detail?.map((err: any) => err.loc.join('.')) || ['unknown fields'];
+           throw new Error(`Ошибка валидации (422): Не заполнены или некорректны поля: ${missingFields.join(', ')}`);
+       }
+
+       throw new Error(errorDetails.detail || `Ошибка данных запроса (${status}).`);
+       // --- End Enhanced Error Handling ---
     }
     return response.json();
   },

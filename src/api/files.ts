@@ -1,9 +1,11 @@
+// files.ts
 import { BASE_URL } from './config';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('adminToken');
   return {
     ...(token ? { 'X-Authorization': token } : {}),
+    // Content-Type will be added specifically in the upload function
   };
 };
 
@@ -16,8 +18,9 @@ export interface FileInfo {
 }
 
 export const filesApi = {
-  // ✅ ИСПРАВЛЕНИЕ: Объединяем старый метод отправки с новым методом чтения ответа
+  // --- REVERTED UPLOAD METHOD (Direct Body) ---
   upload: async (file: File): Promise<string | undefined> => {
+    // Keep filename in URL as before
     const url = `${BASE_URL}/files?filename=${encodeURIComponent(file.name)}`;
 
     try {
@@ -25,30 +28,45 @@ export const filesApi = {
         method: 'POST',
         headers: {
           ...getAuthHeaders(),
-          // 1. ВОЗВРАЩАЕМ ЗАГОЛОВОК: Серверу нужно знать тип файла.
+          // Explicitly set Content-Type based on the file
           'Content-Type': file.type || 'application/octet-stream',
         },
-        // 2. ВОЗВРАЩАЕМ МЕТОД: Отправляем файл напрямую, как "письмо в конверте".
-        body: file,
+        body: file, // Send the file directly as the body
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Не удалось загрузить файл.' }));
-        console.error('Ошибка при загрузке файла:', errorData);
-        return undefined;
+        // Log status specifically for 422 errors
+        if (response.status === 422) {
+             console.error(`Ошибка 422 (Unprocessable Entity) при загрузке файла ${file.name}. Сервер отклонил формат запроса.`);
+        }
+        const errorData = await response.json().catch(() => ({ detail: `Не удалось загрузить файл. Статус: ${response.status}` }));
+        console.error(`Ошибка при загрузке файла ${file.name}:`, response.status, errorData);
+        return undefined; // Indicate failure
       }
 
-      // 3. ОСТАВЛЯЕМ МЕТОД: Читаем ответ как JSON, потому что он приходит в формате {"id": "..."}.
+      // Expect response {"id": "..."}
       const result = await response.json();
-      return result.id;
+      if (!result.id) {
+          console.error(`Ответ сервера при загрузке файла ${file.name} не содержит ID:`, result);
+          return undefined; // Indicate failure
+      }
+      console.log(`Файл ${file.name} успешно загружен, ID: ${result.id}`); // Log success
+      return result.id; // Return the ID on success
 
     } catch (error) {
-        console.error('Сетевая или JSON ошибка при загрузке файла:', error);
-        return undefined;
+      // Check if it's the specific connection reset error
+      if (error instanceof Error && error.message.includes('net::ERR_CONNECTION_RESET')) {
+           console.error(`Ошибка ERR_CONNECTION_RESET при загрузке файла ${file.name}. Сервер принудительно закрыл соединение. Возможно, проблема на сервере или в сети.`);
+      } else {
+           console.error(`Сетевая (${error instanceof Error ? error.name : 'Unknown'}) или JSON ошибка при загрузке файла ${file.name}:`, error);
+      }
+      return undefined; // Indicate failure
     }
   },
+  // --- END REVERTED UPLOAD METHOD ---
 
   getAll: async (): Promise<FileInfo[]> => {
+    // ... (keep as before)
     const response = await fetch(`${BASE_URL}/files`, {
       headers: getAuthHeaders(),
     });
@@ -61,7 +79,8 @@ export const filesApi = {
   },
 
   delete: async (path: string): Promise<void> => {
-    const response = await fetch(`${BASE_URL}/files`, {
+    // ... (keep as before)
+     const response = await fetch(`${BASE_URL}/files`, {
       method: 'DELETE',
       headers: {
         ...getAuthHeaders(),

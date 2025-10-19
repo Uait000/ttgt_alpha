@@ -1,7 +1,8 @@
+import { useState } from 'react'; // <-- ДОБАВИЛИ useState для работы вкладок
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
-import { ExternalLink, CalendarDays, FileText, BookOpen } from 'lucide-react';
+import { ExternalLink, CalendarDays, FileText, BookOpen, ArrowRight } from 'lucide-react';
 
 // --- Импорт файлов GIA ---
 import gia08_02_01 from '@/assets/file/gia/GIA_08_02_01.pdf';
@@ -26,7 +27,13 @@ import metodUkazOformlDP080210Proektir from '@/assets/file/gia/Metod_Ukaz_Oforml
 import metodUkazOformlKPDP from '@/assets/file/gia/Metod_Ukaz_Oforml_KP_DP_07.04.2021.pdf';
 import metodrek from '@/assets/file/gia/Metod_Rek_Ekonomika_DR_080210_Kochetkova_11012021.pdf';
 
+// Определяем типы для вкладок
+type ActiveTab = 'schedule' | 'programs' | 'recommendations';
+
 const StateExam = () => {
+  // Состояние для отслеживания активной вкладки
+  const [activeTab, setActiveTab] = useState<ActiveTab>('schedule');
+
   const programs = [
     { name: 'Автоматика и телемеханика на транспорте (железнодорожном транспорте)', url: gia27_02_03 },
     { name: 'Компьютерные системы и комплексы', url: gia09_02_01 },
@@ -52,107 +59,136 @@ const StateExam = () => {
     { name: 'Методические указания по дипломному проектированию для специальности 08.02.10 (А.Н. Орищенко)', url: metodUkazOformlDP080210Orishhenko }
   ];
 
+  // Вспомогательный компонент для кнопки вкладки
+  const TabButton = ({ tabId, title, icon: Icon }: { tabId: ActiveTab; title: string; icon: React.ElementType }) => (
+    <button
+      onClick={() => setActiveTab(tabId)}
+      className={`flex-1 p-5 text-lg font-bold flex items-center justify-center gap-3 transition-all duration-300 border-b-4 ${
+        activeTab === tabId
+          ? 'border-primary text-primary'
+          : 'border-transparent text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+      }`}
+    >
+      <Icon className="w-6 h-6" />
+      <span>{title}</span>
+    </button>
+  );
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-100"> {/* Обновленный фон */}
       <Header />
       
       <div className="flex">
         <Sidebar />
-     
-
+        
+        {/* --- НАЧАЛО: РЕДИЗАЙН ЦЕНТРАЛЬНОГО БЛОКА --- */}
         <main className="flex-1 min-h-screen">
-          <div className="container mx-auto px-6 py-8">
-            <div className="bg-white rounded-2xl shadow-lg border border-border/80 p-6 md:p-10 transition-all duration-300">
-              
-              {/* --- Заголовок --- */}
-              <div className="flex items-center justify-center mb-10">
-                <span className="text-5xl mr-4">🎓</span>
-                <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                  Государственная Итоговая Аттестация
-                </h1>
-              </div>
-              
-              {/* --- Контейнер с контентом --- */}
-              <div className="bg-gradient-to-tl from-primary/5 via-white to-secondary/5 rounded-xl border border-border/50 p-6 md:p-8 space-y-10 shadow-inner">
-                
-                {/* --- График --- */}
-                <a
-                  href="https://ttgt.org/images/raspisanie/Pr_GIA/Grafik_GIA_2025.pdf" // <-- Оставляю внешнюю ссылку, т.к. файла нет в assets
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block bg-gradient-to-br from-primary to-secondary text-white rounded-xl p-6 shadow-lg hover:shadow-2xl hover:scale-[1.03] transition-all duration-300 cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <CalendarDays className="w-10 h-10 mr-5 flex-shrink-0" />
-                      <div>
-                        <div className="text-sm font-medium opacity-80 mb-1">ГЛАВНЫЙ ДОКУМЕНТ</div>
-                        <h2 className="text-xl font-bold text-white mb-0">
-                          График проведения ГИА с 15.06.2025 г. по 28.06.2025
-                        </h2>
-                      </div>
-                    </div>
-                    <ExternalLink className="w-6 h-6 opacity-70 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </a>
-
-                {/* --- Программы ГИА --- */}
-                <div className="bg-white rounded-xl p-6 shadow-md border border-border/50">
-                  <h2 className="text-2xl font-bold text-primary mb-6 text-center flex items-center justify-center">
-                    <BookOpen className="w-7 h-7 mr-3" />
-                    Программы государственной итоговой аттестации
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {programs.map((program, index) => (
-                      <a
-                        key={index}
-                        href={program.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group flex items-center bg-background/50 rounded-lg p-4 border border-border/70 hover:bg-primary/10 hover:border-primary/50 hover:shadow-lg transition-all duration-300 cursor-pointer"
-                      >
-                        <FileText className="w-5 h-5 mr-3 text-primary/60 group-hover:text-primary transition-colors flex-shrink-0" />
-                        <p className="text-foreground text-sm font-medium group-hover:text-primary transition-colors">
-                          {program.name}
-                        </p>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-
-                {/* --- Методические рекомендации --- */}
-                <div className="bg-white rounded-xl p-6 shadow-md border border-border/50">
-                  <h2 className="text-2xl font-bold text-primary mb-6 text-center">
-                    Методические рекомендации
-                  </h2>
-                  <div className="space-y-3">
-                    {methodicalRecommendations.map((recommendation, index) => (
-                      <a
-                        key={index}
-                        href={recommendation.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group block p-4 bg-background/50 rounded-lg border border-border/70 hover:bg-primary/10 hover:border-primary/50 hover:shadow-lg transition-all duration-300"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3 pr-4">
-                            <FileText className="w-5 h-5 text-primary/60 group-hover:text-primary transition-colors flex-shrink-0" />
-                            <span className="text-foreground font-medium text-sm group-hover:text-primary transition-colors">
-                              {recommendation.name}
-                            </span>
-                          </div>
-                          <ExternalLink className="w-5 h-5 text-primary/70 group-hover:text-primary transition-colors flex-shrink-0" />
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
+          <div className="container mx-auto px-4 lg:px-6 py-12">
+            
+            {/* --- Заголовок --- */}
+            <div className="text-center mb-10">
+              <h1 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4">
+                <span className="text-5xl mr-2">🎓</span>
+                Государственная Итоговая Аттестация
+              </h1>
+              <p className="text-lg text-gray-600">Все необходимые документы для подготовки к ГИА</p>
             </div>
+            
+            {/* --- НОВЫЙ ДИЗАЙН: ВКЛАДКИ --- */}
+            <div className="max-w-5xl mx-auto">
+              
+              {/* 1. Переключатель вкладок */}
+              <div className="bg-white rounded-t-2xl shadow-xl border border-gray-200 flex overflow-hidden">
+                <TabButton tabId="schedule" title="График ГИА" icon={CalendarDays} />
+                <TabButton tabId="programs" title="Программы" icon={BookOpen} />
+                <TabButton tabId="recommendations" title="Рекомендации" icon={FileText} />
+              </div>
+              
+              {/* 2. Контент вкладок */}
+              <div className="bg-white rounded-b-2xl shadow-xl border border-t-0 border-gray-200 p-8 min-h-[400px]">
+                
+                {/* --- Контент вкладки "График" --- */}
+                {activeTab === 'schedule' && (
+                  <div className="flex flex-col items-center justify-center h-full text-center">
+                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                      <CalendarDays className="w-10 h-10 text-primary" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-gray-800 mb-4">
+                      График проведения ГИА
+                    </h2>
+                    <p className="text-xl text-gray-600 mb-8">
+                      с 15.06.2025 г. по 28.06.2025
+                    </p>
+                    <a
+                      href="https://ttgt.org/images/raspisanie/Pr_GIA/Grafik_GIA_2025.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-3 py-3 px-8 bg-primary text-white text-lg font-semibold rounded-lg shadow-lg hover:bg-primary/90 transition-all duration-300 transform hover:scale-105"
+                    >
+                      <ExternalLink className="w-5 h-5" />
+                      Открыть график (PDF)
+                    </a>
+                  </div>
+                )}
+                
+                {/* --- Контент вкладки "Программы" --- */}
+                {activeTab === 'programs' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                      Программы государственной итоговой аттестации
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                      {programs.map((program, index) => (
+                        <a
+                          key={index}
+                          href={program.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group flex justify-between items-center p-4 rounded-xl transition-all duration-300 hover:bg-primary/10 hover:shadow-lg"
+                        >
+                          <span className="text-base font-medium text-gray-700 group-hover:text-primary transition-colors pr-4">
+                            {program.name}
+                          </span>
+                          <div className="flex-shrink-0 text-primary/60 group-hover:text-primary transition-all duration-300">
+                            <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* --- Контент вкладки "Рекомендации" --- */}
+                {activeTab === 'recommendations' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                      Методические рекомендации
+                    </h2>
+                    <div className="space-y-3">
+                      {methodicalRecommendations.map((recommendation, index) => (
+                        <a
+                          key={index}
+                          href={recommendation.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group flex items-start gap-3 p-4 rounded-lg hover:bg-primary/10 transition-all duration-300 border border-transparent hover:border-primary/20"
+                        >
+                          <FileText className="w-4 h-4 text-primary/70 mt-1 flex-shrink-0" />
+                          <span className="text-sm font-medium text-gray-700 group-hover:text-primary transition-colors">
+                            {recommendation.name}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+              </div>
+            </div>
+
           </div>
         </main>
-        
+        {/* --- КОНЕЦ: РЕДИЗАЙН ЦЕНТРАЛЬНОГО БЛОКА --- */}
         
         <aside className="w-80 bg-white border-l border-border p-6 sticky top-16 h-screen overflow-y-auto">
           <SidebarCards />
