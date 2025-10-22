@@ -1,6 +1,38 @@
-import { BASE_URL } from './config';
-import type { NewsPost, NewsDetailPost } from './config';
-import { filesApi } from './files';
+import {BASE_URL} from './config';
+import {filesApi} from './files';
+import {getAuthHeaders} from "@/api/auth.ts";
+
+export const POST_TAGS = [
+    "Новости",
+    "Достижения",
+    "Образование",
+    "Событие"
+];
+
+export interface IncompletePost {
+    id: number;
+    title: string;
+    body: string;
+    publish_date: number;
+    type: number;
+    files: BackendFile[];
+    category: PostCategory;
+}
+
+export interface Post extends IncompletePost {
+    author: string;
+}
+
+export enum PostCategory {
+    News = 0,
+    Professionals = 1,
+    Contests = 2,
+}
+
+export enum PostStatus {
+    Draft = 0,
+    Published = 1,
+}
 
 export class ConflictError extends Error {
   constructor(message = 'Ресурс уже существует.') {
@@ -9,124 +41,84 @@ export class ConflictError extends Error {
   }
 }
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('adminToken');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { 'X-Authorization': token } : {}),
-  };
-};
-
 // --- Define the expected File object structure from backend ---
-interface BackendFile {
+export interface BackendFile {
   id: string;
   name: string;
   mime: string;
 }
 
-// --- Update NewsDetailPost to expect the new 'files' structure ---
-// (Assuming your config.ts defines NewsDetailPost similarly)
-// You might need to adjust your actual NewsDetailPost type definition
-interface UpdatedNewsDetailPost extends Omit<NewsDetailPost, 'images' | 'image_urls'> {
-  files?: BackendFile[]; // Expect 'files' array from getBySlug
-  image_urls?: string[]; // Keep for compatibility if needed elsewhere temporarily
-}
-
-
 export interface CreatePostPayload {
-  title: string;
-  content: string;
-  author: string;
-  type: number;
-  // This field will now primarily hold existing file objects for update
-  files?: BackendFile[];
-  date: string;
-  category: number;
+    title: string;
+    body: string;
+    publish_date: number;
+    author: string;
+    type: number;
+    status: PostStatus;
+    files: string[];
+    category: PostCategory;
 }
 
 export const postsApi = {
-  // --- getAll: Adjusted to ensure 'images' array has IDs for compatibility ---
-  getAll: async (params?: { limit?: number; offset?: number }): Promise<NewsPost[]> => {
+  getAll: async (
+      params?: {
+          limit?: number;
+          offset?: number;
+          category?: PostCategory;
+      }
+  ): Promise<Post[]> => {
     const queryParams = new URLSearchParams();
+
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.offset) queryParams.append('offset', params.offset.toString());
-    queryParams.append('category', '0');
+    if (params?.category) queryParams.append('category', params.category.toString());
+
     const url = `${BASE_URL}/content/posts/?${queryParams.toString()}`;
+
     const response = await fetch(url);
+
     if (!response.ok) {
       throw new Error('Failed to fetch posts');
     }
-    const rawPosts: any[] = await response.json();
 
-    // Transform posts to include 'images' array derived from 'files' if necessary
-    const transformedPosts: NewsPost[] = rawPosts.map(post => {
-      let imageIds: string[] = post.images || []; // Use existing 'images' if available
-
-      // If 'files' exists and 'images' doesn't, create 'images' from 'files'
-      if (!post.images && post.files && Array.isArray(post.files)) {
-        imageIds = post.files
-          .filter((file: any) => file.id && file.mime?.startsWith('image/'))
-          .map((file: any) => file.id);
-      }
-      
-      // Return post with a guaranteed 'images' array for backward compatibility
-      // Keep other fields as they are from the backend
-      return {
-          ...post, // Spread all original fields
-          images: imageIds, // Ensure 'images' contains IDs
-          // Optionally keep 'files' if other parts of your app use it
-          // files: post.files 
-      };
-  });
-
-
-    return transformedPosts;
+    return await response.json();
   },
 
-  // --- getBySlug: Adjusted to return the 'files' array as received ---
-  getBySlug: async (slug: string): Promise<UpdatedNewsDetailPost> => {
-    const response = await fetch(`${BASE_URL}/content/posts/${slug}`);
+  getById: async (id: string): Promise<Post> => {
+    const response = await fetch(`${BASE_URL}/content/posts/${id}`);
     if (!response.ok) {
       throw new Error('Failed to fetch post');
     }
-    // Assume backend now returns 'files: [{id, name, mime}]'
-    const postData: UpdatedNewsDetailPost = await response.json();
-    
-    // Add image_urls for compatibility with update form if needed
-    if (postData.files) {
-        postData.image_urls = postData.files.map(f => f.id);
-    }
-
-    return postData;
+      return await response.json();
   },
 
-  // --- create: Sends 'files' array instead of 'images' ---
-  create: async (payload: CreatePostPayload, imageFiles?: File[]): Promise<NewsPost> => {
-    let filesPayload: BackendFile[] = []; // Initialize as empty array
+  create: async (
+      payload: CreatePostPayload,
+      files: File[] = []
+  ): Promise<Post> => {
+    let filesPayload: BackendFile[]; // Initialize as empty array
 
-    if (imageFiles && imageFiles.length > 0) {
-      // Create upload promises
-      const uploadPromises = imageFiles.map(async (file) => {
-        try {
-          const fileId = await filesApi.upload(file); // Assume this returns only the ID (string)
-          if (typeof fileId === 'string' && fileId) {
-            // Construct the object expected by the backend
-            return {
-              id: fileId,
-              name: file.name,
-              mime: file.type || 'application/octet-stream', // Use file type as mime, fallback if needed
-            };
-          }
-        } catch (error) {
-          console.error(`Failed to upload file ${file.name}:`, error);
+    // Create upload promises
+    const uploadPromises: Promise<BackendFile>[] = files.map(async (file): Promise<BackendFile> => {
+      try {
+        const fileId = await filesApi.upload(file); // Assume this returns only the ID (string)
+        if (typeof fileId === 'string' && fileId) {
+          // Construct the object expected by the backend
+          return {
+            id: fileId,
+            name: file.name,
+            mime: file.type || 'application/octet-stream', // Use file type as mime, fallback if needed
+          };
         }
-        return null; // Return null for failed uploads
-      });
+      } catch (error) {
+        console.error(`Failed to upload file ${file.name}:`, error);
+      }
+      return null; // Return null for failed uploads
+    });
 
-      // Wait for all uploads and filter out failed ones
-      const uploadResults = await Promise.all(uploadPromises);
-      filesPayload = uploadResults.filter((result): result is BackendFile => result !== null);
-    }
+  // Wait for all uploads and filter out failed ones
+  const uploadResults = await Promise.all(uploadPromises);
+  filesPayload = uploadResults.filter((result): result is BackendFile => result !== null);
 
     const category = Number(payload.category);
     const type = Number(payload.type);
@@ -138,12 +130,12 @@ export const postsApi = {
     // --- Send 'files' array in the payload ---
     const finalPayload = {
       title: payload.title,
-      body: payload.content,
-      publish_date: Math.floor(new Date(payload.date).getTime() / 1000),
+      body: payload.body,
+      publish_date: Math.floor(new Date(payload.publish_date).getTime() / 1000),
       author: payload.author,
-      category: category,
-      type: type,
-      status: 1,
+      category,
+      type,
+      status: payload.status,
       files: filesPayload, // Use the new 'files' array
       // images: undefined // Remove old 'images' field
     };
@@ -169,24 +161,12 @@ export const postsApi = {
   },
 
   // --- update: Sends 'files' array instead of 'images' ---
-  update: async (id: number, payload: Partial<CreatePostPayload>, imageFiles?: File[]) => {
-    const finalPayload: any = { status: 1 }; // Start with status
-
-    // --- Map standard fields ---
-    if (payload.title) finalPayload.title = payload.title;
-    if (payload.content) finalPayload.body = payload.content;
-    if (payload.date) finalPayload.publish_date = Math.floor(new Date(payload.date).getTime() / 1000);
-    if (payload.author) finalPayload.author = payload.author;
-    if (payload.type !== undefined) finalPayload.type = Number(payload.type);
-    if (payload.category !== undefined) finalPayload.category = Number(payload.category);
-    
-    // --- Handle Files ---
-    // Start with existing files (payload.files should be populated by getBySlug)
-    let combinedFiles: BackendFile[] = payload.files || [];
+  update: async (id: number, payload: Partial<CreatePostPayload>, files?: File[]) => {
+    let combinedFiles: string[] = payload.files || [];
 
     // Upload new files if provided
-    if (imageFiles && imageFiles.length > 0) {
-      const uploadPromises = imageFiles.map(async (file) => {
+    if (files && files.length > 0) {
+      const uploadPromises = files.map(async (file) => {
          try {
            const fileId = await filesApi.upload(file);
            if (typeof fileId === 'string' && fileId) {
@@ -198,23 +178,23 @@ export const postsApi = {
          return null;
       });
       const newUploadResults = await Promise.all(uploadPromises);
-      const successfullyUploadedFiles = newUploadResults.filter((result): result is BackendFile => result !== null);
+      const successfullyUploadedFiles = newUploadResults
+          .filter((result): result is BackendFile => result !== null)
+          .map((result: BackendFile) => result.id);
       
       // Add newly uploaded files to the list
-      combinedFiles = [...combinedFiles, ...successfullyUploadedFiles];
+      combinedFiles = [...successfullyUploadedFiles];
     }
 
-    // --- Set the final 'files' payload ---
-    finalPayload.files = combinedFiles;
-    // finalPayload.images = undefined; // Ensure old 'images' field is not sent
+    payload.files = combinedFiles;
 
-    console.log('Отправляемый Payload (Update):', JSON.stringify(finalPayload, null, 2));
+    console.log('Отправляемый Payload (Update):', payload);
 
 
     const response = await fetch(`${BASE_URL}/admin/posts/${id}`, {
       method: 'PATCH',
       headers: getAuthHeaders(),
-      body: JSON.stringify(finalPayload),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -229,12 +209,9 @@ export const postsApi = {
            console.error(errorDetails.detail);
        }
 
-       if (status === 409) {
-           throw new ConflictError(errorDetails.detail || 'Этот slug уже занят. Пожалуйста, измените заголовок.');
-       }
        if (status === 422) {
            // Provide more specific feedback for validation errors
-           const missingFields = errorDetails.detail?.map((err: any) => err.loc.join('.')) || ['unknown fields'];
+           const missingFields = errorDetails.detail?.map((err) => err.loc.join('.')) || ['unknown fields'];
            throw new Error(`Ошибка валидации (422): Не заполнены или некорректны поля: ${missingFields.join(', ')}`);
        }
 
@@ -253,9 +230,5 @@ export const postsApi = {
       const error = await response.json().catch(() => ({ message: 'Failed to delete post' }));
       throw new Error(error.message || 'Failed to delete post');
     }
-  },
-
-  getAuthors: async (): Promise<string[]> => {
-    return ['Администрация', 'Приемная комиссия', 'Учебный отдел', 'Воспитательный отдел'];
   },
 };

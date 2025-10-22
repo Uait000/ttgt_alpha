@@ -1,26 +1,9 @@
 // files.ts
 import { BASE_URL } from './config';
-
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('adminToken');
-  return {
-    ...(token ? { 'X-Authorization': token } : {}),
-    // Content-Type will be added specifically in the upload function
-  };
-};
-
-export interface FileInfo {
-  name: string;
-  path: string;
-  url: string;
-  size: number;
-  type: string;
-}
+import { getAuthHeaders } from "@/api/auth.ts";
 
 export const filesApi = {
-  // --- REVERTED UPLOAD METHOD (Direct Body) ---
   upload: async (file: File): Promise<string | undefined> => {
-    // Keep filename in URL as before
     const url = `${BASE_URL}/files?filename=${encodeURIComponent(file.name)}`;
 
     try {
@@ -61,37 +44,6 @@ export const filesApi = {
            console.error(`Сетевая (${error instanceof Error ? error.name : 'Unknown'}) или JSON ошибка при загрузке файла ${file.name}:`, error);
       }
       return undefined; // Indicate failure
-    }
-  },
-  // --- END REVERTED UPLOAD METHOD ---
-
-  getAll: async (): Promise<FileInfo[]> => {
-    // ... (keep as before)
-    const response = await fetch(`${BASE_URL}/files`, {
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch files');
-    }
-
-    return response.json();
-  },
-
-  delete: async (path: string): Promise<void> => {
-    // ... (keep as before)
-     const response = await fetch(`${BASE_URL}/files`, {
-      method: 'DELETE',
-      headers: {
-        ...getAuthHeaders(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ path }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Failed to delete file' }));
-      throw new Error(error.message || 'Failed to delete file');
     }
   },
 };
