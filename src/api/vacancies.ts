@@ -1,13 +1,13 @@
 import { BASE_URL, VACANCIES_ENDPOINT } from './config';
-import type { Vacancy } from './config';
+import { getAuthHeaders } from "@/api/auth.ts";
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('adminToken');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { 'X-Authorization': token } : {}),
-  };
-};
+export interface Vacancy {
+    id: number;
+    title: string;
+    department: string;
+    salary: string;
+    description?: string;
+}
 
 export interface CreateVacancyPayload {
   title: string;

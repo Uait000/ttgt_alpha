@@ -1,13 +1,10 @@
 import { BASE_URL } from './config';
-import type { Teacher } from './config';
+import { getAuthHeaders } from "@/api/auth.ts";
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('adminToken');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { 'X-Authorization': token } : {}),
-  };
-};
+export interface Teacher {
+    id: number;
+    initials: string;
+}
 
 export interface CreateTeacherPayload {
   name: string;
@@ -16,7 +13,6 @@ export interface CreateTeacherPayload {
 }
 
 export const teachersApi = {
-  // --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
   // Добавляем возможность передавать параметры, такие как limit
   getAll: async (params?: { limit?: number; offset?: number }): Promise<Teacher[]> => {
     const queryParams = new URLSearchParams();
@@ -36,7 +32,6 @@ export const teachersApi = {
 
     return response.json();
   },
-  // --- КОНЕЦ ИЗМЕНЕНИЯ ---
 
   create: async (payload: CreateTeacherPayload): Promise<Teacher> => {
     const response = await fetch(`${BASE_URL}/admin/teachers`, {
