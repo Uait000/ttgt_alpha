@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { postsApi } from '@/api/posts';
-import type { NewsPost } from '@/api/config';
-import { POST_TAGS } from '@/api/config';
+import { postsApi, Post, PostCategory } from '@/api/posts'; // ИСПРАВЛЕНИЕ 1: Импортируем Post и PostCategory
+import { POST_TAGS } from '@/api/posts'; // ИСПРАВЛЕНИЕ 2: POST_TAGS из posts.ts
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -26,26 +25,27 @@ import {
 import ProfessionalForm from './ProfessionalForm';
 
 export default function ProfessionalsList() {
-  const [posts, setPosts] = useState<NewsPost[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]); // ИСПРАВЛЕНИЕ 3: NewsPost заменен на Post
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [editPost, setEditPost] = useState<NewsPost | null>(null);
+  const [editPost, setEditPost] = useState<Post | null>(null); // ИСПРАВЛЕНИЕ 4: NewsPost заменен на Post
   const { toast } = useToast();
 
   const loadPosts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://185.13.47.146:50123/content/posts/?category=1&limit=100&offset=0');
-      if (!response.ok) throw new Error('Failed to fetch');
-      const data = await response.json();
+      
+      // ИСПРАВЛЕНИЕ 5: Используем postsApi.getAll с параметром category (Пункт 8)
+      const data = await postsApi.getAll({ 
+        category: PostCategory.Professionals, // Категория "Профессионалы" (1)
+        limit: 100, 
+        offset: 0 
+      });
 
       if (Array.isArray(data)) {
-        const normalizedPosts = data.map(post => ({
-          ...post,
-          body: (post as any).text || post.body || '',
-        }));
-        setPosts(normalizedPosts);
+        // Убираем ручную нормализацию. data уже должно быть Post[]
+        setPosts(data); 
       } else {
         setPosts([]);
       }
@@ -86,7 +86,7 @@ export default function ProfessionalsList() {
     }
   };
 
-  const handleEdit = (post: NewsPost) => {
+  const handleEdit = (post: Post) => { // ИСПРАВЛЕНИЕ 6: NewsPost заменен на Post
     setEditPost(post);
     setFormOpen(true);
   };

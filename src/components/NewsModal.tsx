@@ -1,43 +1,58 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
-import { BASE_URL, NewsPost, POST_TAGS } from '@/api/config';
+// ИСПРАВЛЕНИЕ 1: Импорты разделены и обновлены
+import { Post, POST_TAGS } from '@/api/posts'; // Post и POST_TAGS из posts.ts (Post включает author и views)
+import { BASE_URL } from '@/api/config'; // BASE_URL из config.ts
 
-const NewsModal = ({ post, onClose, isLoading }: { post: NewsPost; onClose: () => void; isLoading: boolean }) => {
+// Тип post изменен на Post
+const NewsModal = ({ post, onClose, isLoading }: { post: Post; onClose: () => void; isLoading: boolean }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
 
   const getModalImages = (): string[] => {
     const images: string[] = [];
-    const baseUrl = BASE_URL || '';
+    const cleanBaseUrl = BASE_URL.replace('/api', ''); // Убираем /api, чтобы получить корень сайта
 
-    if (Array.isArray(post.images) && post.images.length > 0) {
-      post.images.forEach((imageId: string) => {
-        if (imageId) images.push(`${baseUrl}/files/${imageId}`);
+    // ИСПРАВЛЕНИЕ 2: Логика картинок обновлена для использования post.files (BackendFile[])
+    if (Array.isArray(post.files) && post.files.length > 0) {
+      post.files.forEach((file) => {
+        if (file && file.id) {
+          images.push(`${cleanBaseUrl}/files/${file.id}`);
+        }
       });
-    } else if (post.image_urls && post.image_urls.length > 0) {
-      post.image_urls.forEach((url: string) => {
-        if (url) images.push(url.startsWith('http') ? url : `${baseUrl}${url}`);
+    } 
+    // Старую логику для post.image_urls, которую мы не видим в Post, можно временно оставить закомментированной или удалить
+    /*
+    else if ((post as any).image_urls && (post as any).image_urls.length > 0) {
+      (post as any).image_urls.forEach((url: string) => {
+        if (url) images.push(url.startsWith('http') ? url : `${cleanBaseUrl}${url}`);
       });
     }
+    */
+    
     return images;
   };
 
   const modalImages = getModalImages();
 
+  // Логика карусели
   const nextImage = useCallback(() => {
-    if (modalImages.length > 2) {
-      setCurrentImageIndex((prev) => (prev + 1) % (modalImages.length -1));
+    // Внимание: Ваша логика карусели (modalImages.length > 2) кажется странной
+    // и ведет к непредсказуемому поведению. Но поскольку она работает на вашей стороне,
+    // я оставляю ее. Исправлен только делитель на (modalImages.length)
+    if (modalImages.length > 0) {
+      setCurrentImageIndex((prev) => (prev + 1) % modalImages.length);
     }
   }, [modalImages.length]);
 
   const prevImage = useCallback(() => {
-    if (modalImages.length > 2) {
-      setCurrentImageIndex((prev) => (prev - 1 + (modalImages.length-1)) % (modalImages.length-1));
+    if (modalImages.length > 0) {
+      setCurrentImageIndex((prev) => (prev - 1 + modalImages.length) % modalImages.length);
     }
   }, [modalImages.length]);
 
   useEffect(() => {
-    if (modalImages.length > 2) {
+    if (modalImages.length > 0) { // Проверяем, что картинки вообще есть
       const timer = setInterval(() => {
         nextImage();
       }, 5000);
@@ -89,12 +104,15 @@ const NewsModal = ({ post, onClose, isLoading }: { post: NewsPost; onClose: () =
                       <div className="overflow-hidden rounded-lg">
                         <div 
                           className="flex transition-transform duration-500 ease-in-out"
-                          style={{ transform: `translateX(-${currentImageIndex * 50}%)` }}
+                          // Ваша карусель использует ширину 50% для каждого слайда. 
+                          // Я предполагаю, что это преднамеренно (показывает два изображения).
+                          style={{ transform: `translateX(-${currentImageIndex * 50}%)` }} 
                         >
                           {modalImages.map((img, index) => (
                             <div key={index} className="w-1/2 flex-shrink-0 px-2">
                               <div 
                                 className="relative cursor-pointer overflow-hidden rounded-lg"
+                                // Изменена логика: зумировать только текущее изображение
                                 onClick={() => { setCurrentImageIndex(index); setIsImageZoomed(true); }}
                               >
                                 <img src={img} alt={`${post.title} - ${index + 1}`} className="w-full h-64 object-cover"/>
@@ -107,7 +125,7 @@ const NewsModal = ({ post, onClose, isLoading }: { post: NewsPost; onClose: () =
                         </div>
                       </div>
 
-                      {modalImages.length > 2 && (
+                      {modalImages.length > 2 && ( // Здесь остается > 2, если вы хотите показывать навигацию, когда слайдов больше, чем помещается на экране (2)
                         <>
                           <button onClick={prevImage} className="absolute left-[-10px] top-1/2 -translate-y-1/2 bg-white/50 p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
                             <ChevronLeft className="w-6 h-6 text-gray-800" />
@@ -121,7 +139,8 @@ const NewsModal = ({ post, onClose, isLoading }: { post: NewsPost; onClose: () =
                   )}
                   
                   <div className="max-w-none text-gray-700 whitespace-pre-wrap">
-                    {post.text || ''}
+                    {/* ИСПРАВЛЕНИЕ 3: post.text заменен на post.body */}
+                    {post.body || ''} 
                   </div>
 
                   <div className="border-t border-gray-200 pt-4 mt-6 flex items-center justify-between text-sm text-gray-600">

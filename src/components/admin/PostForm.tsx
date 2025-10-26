@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-// ИЗМЕНЕНИЕ: Импортируем наш новый класс ошибки
-import { postsApi, type CreatePostPayload, ConflictError } from '@/api/posts';
+// ИСПРАВЛЕНИЕ 1: Импорты типов и констант
+import { postsApi, type CreatePostPayload, ConflictError, Post, PostCategory, PostStatus } from '@/api/posts'; 
 import { teachersApi } from '@/api/teachers';
-import type { NewsPost, Teacher } from '@/api/config';
-import { POST_TAGS } from '@/api/config';
+import type { Teacher } from '@/api/teachers'; // ИСПРАВЛЕНИЕ 2: Teacher из teachers.ts
+import { POST_TAGS } from '@/api/posts'; // ИСПРАВЛЕНИЕ 3: POST_TAGS из posts.ts
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,30 +30,33 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import RichTextEditor from './RichTextEditor';
 import MultipleFileUpload from './MultipleFileUpload';
+import { Checkbox } from '@/components/ui/checkbox'; // Добавлен импорт для чекбокса
 
 interface PostFormProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  editPost?: NewsPost | null;
+  editPost?: Post | null; // ИСПРАВЛЕНИЕ 4: NewsPost заменен на Post
 }
 
 export default function PostForm({ open, onClose, onSuccess, editPost }: PostFormProps) {
   const [loading, setLoading] = useState(false);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
-  // ИЗМЕНЕНИЕ: Добавляем состояние для хранения ошибки заголовка
   const [titleError, setTitleError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState<CreatePostPayload>({
+  // ИСПРАВЛЕНИЕ 5: Обновленная структура CreatePostPayload
+  const [formData, setFormData] = useState<CreatePostPayload & { isDraft: boolean }>({
     title: '',
-    content: '',
+    body: '', // ИСПРАВЛЕНИЕ: content -> body
     author: '',
     type: 0,
-    image_urls: [],
-    date: new Date().toISOString(),
-    category: 0,
+    files: [], // ИСПРАВЛЕНИЕ: image_urls -> files
+    publish_date: Math.floor(new Date().getTime() / 1000), // ИСПРАВЛЕНИЕ: date -> publish_date (number)
+    category: PostCategory.News, // По умолчанию News (0)
+    status: PostStatus.Draft, // Добавляем статус
+    isDraft: true, // Локальное состояние для чекбокса
   });
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -73,68 +76,80 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
 
   useEffect(() => {
     setTitleError(null);
+    const postDate = editPost ? new Date(editPost.publish_date * 1000) : new Date();
 
     if (open && editPost) {
-      const postDate = new Date(editPost.publish_date * 1000);
-      const contentText = (editPost as any).text || editPost.body || '';
-
+      // ИСПРАВЛЕНИЕ: Проверяем наличие 'body', files - это BackendFile[]
+      const fileIds = editPost.files?.map(f => f.id) || [];
+      
       setFormData({
         title: editPost.title,
-        content: contentText,
+        body: editPost.body, // ИСПРАВЛЕНИЕ: content -> body
         author: editPost.author,
         type: editPost.type,
-        image_urls: editPost.image_urls || [],
-        date: postDate.toISOString(),
-        category: 0,
+        files: fileIds, // ИСПРАВЛЕНИЕ: image_urls -> files (массив ID)
+        publish_date: editPost.publish_date, // number
+        category: editPost.category || PostCategory.News, // Используем текущую категорию поста
+        status: editPost.status || PostStatus.Draft, // Используем текущий статус
+        isDraft: editPost.status === PostStatus.Draft, // Устанавливаем локальный чекбокс
       });
       setSelectedDate(postDate);
       setImageFiles([]);
     } else if (open && !editPost) {
+      const initialDate = new Date();
       setFormData({
         title: '',
-        content: '',
+        body: '', // ИСПРАВЛЕНИЕ: content -> body
         author: teachers.length > 0 ? teachers[0].initials : '',
         type: 0,
-        image_urls: [],
-        date: new Date().toISOString(),
-        category: 0,
+        files: [], // ИСПРАВЛЕНИЕ: image_urls -> files
+        publish_date: Math.floor(initialDate.getTime() / 1000), // number
+        category: PostCategory.News,
+        status: PostStatus.Draft,
+        isDraft: true,
       });
-      setSelectedDate(new Date());
+      setSelectedDate(initialDate);
       setImageFiles([]);
     }
   }, [editPost, open, teachers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ИЗМЕНЕНИЕ: Сбрасываем ошибку перед новой попыткой отправки
     setTitleError(null);
 
-    if (!(formData.title || '').trim() || !(formData.content || '').trim() || !formData.author) {
+    // ИСПРАВЛЕНИЕ: Проверка на body
+    if (!(formData.title || '').trim() || !(formData.body || '').trim() || !formData.author) {
       toast({ title: 'Ошибка', description: 'Пожалуйста, заполните все обязательные поля (*)', variant: 'destructive' });
       return;
     }
 
     setLoading(true);
     try {
-      const payload: CreatePostPayload = {
-        ...formData,
-        date: selectedDate.toISOString(),
+      // ИСПРАВЛЕНИЕ: Формируем финальный payload для отправки
+      const finalPayload: CreatePostPayload = {
+        title: formData.title,
+        body: formData.body, // Используем body
+        author: formData.author,
+        type: formData.type,
+        // Если загружены новые файлы, они будут отправлены вместе с payload. 
+        // Если нет, postsApi.update использует существующие ID в payload.files
+        files: formData.files, 
+        // ИСПРАВЛЕНИЕ: Дата всегда отправляется как number (секунды)
+        publish_date: Math.floor(selectedDate.getTime() / 1000), 
+        category: formData.category,
+        status: formData.isDraft ? PostStatus.Draft : PostStatus.Published, // Определяем статус по чекбоксу
       };
 
-      if (imageFiles.length > 0) {
-        delete (payload as Partial<CreatePostPayload>).image_urls;
-      }
-
       if (editPost) {
-        await postsApi.update(editPost.id, payload, imageFiles.length > 0 ? imageFiles : undefined);
+        // При обновлении postsApi.update принимает Partial<CreatePostPayload>
+        await postsApi.update(editPost.id, finalPayload, imageFiles.length > 0 ? imageFiles : undefined);
         toast({ title: 'Успешно', description: 'Пост обновлен' });
       } else {
-        await postsApi.create(payload, imageFiles.length > 0 ? imageFiles : undefined);
+        await postsApi.create(finalPayload, imageFiles.length > 0 ? imageFiles : undefined);
         toast({ title: 'Успешно', description: 'Пост создан' });
       }
       onSuccess();
     } catch (error) {
-      // ИЗМЕНЕНИЕ: Ловим нашу кастомную ошибку и показываем ее под полем
       if (error instanceof ConflictError) {
         setTitleError(error.message);
       } else {
@@ -146,20 +161,26 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
   };
 
   const handleClose = () => {
+    const initialDate = new Date();
     setFormData({
       title: '',
-      content: '',
+      body: '', // ИСПРАВЛЕНИЕ: content -> body
       author: teachers.length > 0 ? teachers[0].initials : '',
       type: 0,
-      image_urls: [],
-      date: new Date().toISOString(),
-      category: 0,
+      files: [], // ИСПРАВЛЕНИЕ: image_urls -> files
+      publish_date: Math.floor(initialDate.getTime() / 1000),
+      category: PostCategory.News,
+      status: PostStatus.Draft,
+      isDraft: true,
     });
-    setSelectedDate(new Date());
+    setSelectedDate(initialDate);
     setImageFiles([]);
     setTitleError(null);
     onClose();
   };
+  
+  // ИСПРАВЛЕНИЕ: Для RichTextEditor используем formData.body
+  const handleBodyChange = (value: string) => setFormData({ ...formData, body: value });
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -173,13 +194,13 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
           <div className="space-y-2">
             <Label htmlFor="title">Заголовок *</Label>
             <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Введите заголовок поста" required />
-            {/* ИЗМЕНЕНИЕ: Отображаем текст ошибки, если она есть */}
             {titleError && (
               <p className="text-sm font-medium text-destructive">{titleError}</p>
             )}
           </div>
 
-          <RichTextEditor value={formData.content} onChange={(value) => setFormData({ ...formData, content: value })} label="Основной текст *" placeholder="Полный текст поста" required rows={8} />
+          {/* ИСПРАВЛЕНИЕ: Используем formData.body и handleBodyChange */}
+          <RichTextEditor value={formData.body} onChange={handleBodyChange} label="Основной текст *" placeholder="Полный текст поста" required rows={8} />
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -226,7 +247,23 @@ export default function PostForm({ open, onClose, onSuccess, editPost }: PostFor
             </Popover>
           </div>
 
-          <MultipleFileUpload value={formData.image_urls} onChange={(files) => setImageFiles(files)} label="Изображения" maxFiles={20} />
+          {/* ИСПРАВЛЕНИЕ: MultipleFileUpload использует formData.files (массив ID) для отображения */}
+          <MultipleFileUpload 
+            value={formData.files} 
+            onChange={(files) => setImageFiles(files)} 
+            label="Изображения" 
+            maxFiles={20} 
+          />
+          
+          {/* Добавляем чекбокс для драфта (Пункт 6: Добавлен PostStatus) */}
+          <div className="flex items-center space-x-2 pt-2">
+            <Checkbox
+              id="isDraft"
+              checked={formData.isDraft}
+              onCheckedChange={(checked) => setFormData({ ...formData, isDraft: !!checked })}
+            />
+            <Label htmlFor="isDraft">Сохранить как черновик</Label>
+          </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>Отмена</Button>

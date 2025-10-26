@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react';
-import { professionalsApi } from '@/api/professionals-api';
-import type { Professional } from '@/api/config';
+// ИСПРАВЛЕНИЕ 1: professionalsApi заменен на postsApi. Добавлен Post и PostCategory.
+import { postsApi, Post, PostCategory } from '@/api/posts'; 
+// ИСПРАВЛЕНИЕ 2: Professional (из config) заменен на Post (из posts).
+import type { Post as Professional } from '@/api/posts'; 
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import InfoBlocks from '@/components/InfoBlocks';
 import { Eye, X, ChevronLeft, ChevronRight } from 'lucide-react';
+
+// ИСПРАВЛЕНИЕ 3: Поскольку category в Post теперь числовой PostCategory, а не строка, 
+// эти маппинги, вероятно, устарели или используются для маппинга post.type.
+// Поскольку PostCategory для профессионалов равно 1, и в этом файле post.category используется 
+// как ключ для CATEGORY_LABELS, мы заменим post.category на post.type.
+// Однако, оставим их как есть, предполагая, что post.category здесь означает post.type,
+// или API возвращает старый строковый ключ в поле category, хотя это маловероятно.
+// Оставляем эти маппинги без изменений, но используем post.type для меток.
 
 const CATEGORY_LABELS: Record<string, string> = {
   achievement: 'Достижение',
@@ -21,6 +31,9 @@ const CATEGORY_BADGES: Record<string, string> = {
   success: 'bg-purple-100 text-purple-800',
 };
 
+// Константы для форматирования ссылок
+const CLEAN_BASE_URL = (postsApi as any).BASE_URL?.replace('/api', '') || '';
+
 const Professionals = () => {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +47,13 @@ const Professionals = () => {
   const loadProfessionals = async () => {
     try {
       setLoading(true);
-      const data = await professionalsApi.getAll();
-      setProfessionals(data);
+      // ИСПРАВЛЕНИЕ 4: Используем postsApi.getAll с фильтром по категории "Профессионалы" (1)
+      const data = await postsApi.getAll({ 
+        category: PostCategory.Professionals,
+        limit: 100, 
+      });
+      
+      setProfessionals(data as Professional[]);
     } catch (error) {
       console.error('Failed to load professionals:', error);
     } finally {
@@ -52,20 +70,35 @@ const Professionals = () => {
     setSelectedPost(null);
     setCurrentImageIndex(0);
   };
+  
+  // ИСПРАВЛЕНИЕ 5: Логика карусели теперь использует post.files (BackendFile[])
+  const getModalImages = (post: Professional): string[] => {
+    const images: string[] = [];
+    if (Array.isArray(post.files) && post.files.length > 0) {
+      post.files.forEach((file) => {
+        if (file && file.id) {
+          images.push(`${CLEAN_BASE_URL}/files/${file.id}`);
+        }
+      });
+    }
+    return images;
+  };
 
   const nextImage = () => {
-    if (selectedPost && selectedPost.image_urls) {
-      setCurrentImageIndex((prev) =>
-        (prev + 1) % selectedPost.image_urls!.length
-      );
+    if (selectedPost) {
+        const images = getModalImages(selectedPost);
+        if (images.length > 0) {
+            setCurrentImageIndex((prev) => (prev + 1) % images.length);
+        }
     }
   };
 
   const prevImage = () => {
-    if (selectedPost && selectedPost.image_urls) {
-      setCurrentImageIndex((prev) =>
-        prev === 0 ? selectedPost.image_urls!.length - 1 : prev - 1
-      );
+    if (selectedPost) {
+        const images = getModalImages(selectedPost);
+        if (images.length > 0) {
+            setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+        }
     }
   };
 
@@ -75,6 +108,22 @@ const Professionals = () => {
       month: 'long',
       year: 'numeric',
     }) + ' г.';
+  };
+  
+  // Здесь мы используем post.type для метки, так как post.category в новом API - число.
+  const getCategoryKey = (type: number) => {
+    // POST_TAGS: ["Новости", "Достижения", "Образование", "Событие"]
+    const tag = (postsApi as any).POST_TAGS?.[type] || 'success'; 
+    // Предполагаем, что вам нужно маппить числовой type на строковые ключи achievement/award/recognition/success
+    if (tag === 'Достижения') return 'achievement';
+    if (tag === 'Событие') return 'award';
+    // и т.д. или просто возвращаем 'success' по умолчанию
+    return 'success'; 
+  };
+  
+  const getPostImageUrl = (post: Professional, index: number = 0): string | undefined => {
+    const images = getModalImages(post);
+    return images.length > index ? images[index] : undefined;
   };
 
   return (
@@ -100,55 +149,63 @@ const Professionals = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {professionals.map((post) => (
-                  <article
-                    key={post.id}
-                    className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => handleReadMore(post)}
-                  >
-                    {post.image_urls && post.image_urls.length > 0 && (
-                      <div className="relative h-48 overflow-hidden">
-                        <img
-                          src={post.image_urls[0]}
-                          alt={post.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-4 left-4">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${CATEGORY_BADGES[post.category] || CATEGORY_BADGES.achievement}`}>
-                            {CATEGORY_LABELS[post.category] || post.category}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                {professionals.map((post) => {
+                    const imageUrl = getPostImageUrl(post);
+                    const categoryKey = getCategoryKey(post.type);
+                    
+                    return (
+                        <article
+                            key={post.id}
+                            className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                            onClick={() => handleReadMore(post)}
+                        >
+                            {/* ИСПРАВЛЕНИЕ: Используем новую логику получения URL */}
+                            {imageUrl && (
+                                <div className="relative h-48 overflow-hidden">
+                                    <img
+                                        src={imageUrl}
+                                        alt={post.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute top-4 left-4">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${CATEGORY_BADGES[categoryKey] || CATEGORY_BADGES.achievement}`}>
+                                            {/* ИСПРАВЛЕНИЕ: Используем type для маппинга */}
+                                            {CATEGORY_LABELS[categoryKey] || 'Профессионал'} 
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
 
-                    <div className="p-6">
-                      <h3 className="text-xl font-semibold text-foreground mb-3 line-clamp-2">
-                        {post.title}
-                      </h3>
+                            <div className="p-6">
+                                <h3 className="text-xl font-semibold text-foreground mb-3 line-clamp-2">
+                                    {post.title}
+                                </h3>
 
-                      <p className="text-muted-foreground mb-4 line-clamp-3">
-                        {post.body.replace(/<[^>]*>/g, '').substring(0, 150)}...
-                      </p>
+                                <p className="text-muted-foreground mb-4 line-clamp-3">
+                                    {/* ИСПРАВЛЕНИЕ: post.body используется, что корректно */}
+                                    {post.body.replace(/<[^>]*>/g, '').substring(0, 150)}...
+                                </p>
 
-                      <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                        <span>{formatDate(post.publish_date)}</span>
-                        <span>{post.author}</span>
-                      </div>
+                                <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                                    <span>{formatDate(post.publish_date)}</span>
+                                    <span>{post.author}</span>
+                                </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                          <span className="flex items-center space-x-1">
-                            <Eye className="w-4 h-4" />
-                            <span>{post.views}</span>
-                          </span>
-                        </div>
-                        <button className="text-primary hover:text-primary-hover font-medium text-sm transition-colors">
-                          Читать →
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                                        <span className="flex items-center space-x-1">
+                                            <Eye className="w-4 h-4" />
+                                            <span>{post.views}</span>
+                                        </span>
+                                    </div>
+                                    <button className="text-primary hover:text-primary-hover font-medium text-sm transition-colors">
+                                        Читать →
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+                    );
+                })}
               </div>
             )}
           </div>
@@ -171,15 +228,16 @@ const Professionals = () => {
               <X className="w-6 h-6" />
             </button>
 
-            {selectedPost.image_urls && selectedPost.image_urls.length > 0 && (
+            {/* ИСПРАВЛЕНИЕ: Используем getModalImages для модального окна */}
+            {getModalImages(selectedPost).length > 0 && (
               <div className="relative h-96 rounded-t-lg overflow-hidden group">
                 <img
-                  src={selectedPost.image_urls[currentImageIndex]}
+                  src={getModalImages(selectedPost)[currentImageIndex]}
                   alt={selectedPost.title}
                   className="w-full h-full object-cover"
                 />
 
-                {selectedPost.image_urls.length > 1 && (
+                {getModalImages(selectedPost).length > 1 && (
                   <>
                     <button
                       onClick={(e) => {
@@ -201,7 +259,7 @@ const Professionals = () => {
                     </button>
 
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
-                      {selectedPost.image_urls.map((_, index) => (
+                      {getModalImages(selectedPost).map((_, index) => (
                         <div
                           key={index}
                           className={`w-2 h-2 rounded-full ${
@@ -217,8 +275,9 @@ const Professionals = () => {
 
             <div className="p-8">
               <div className="mb-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${CATEGORY_BADGES[selectedPost.category] || CATEGORY_BADGES.achievement}`}>
-                  {CATEGORY_LABELS[selectedPost.category] || selectedPost.category}
+                 {/* ИСПРАВЛЕНИЕ: Используем type для маппинга */}
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${CATEGORY_BADGES[getCategoryKey(selectedPost.type)] || CATEGORY_BADGES.achievement}`}>
+                  {CATEGORY_LABELS[getCategoryKey(selectedPost.type)] || 'Профессионал'}
                 </span>
               </div>
 
