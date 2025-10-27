@@ -1,37 +1,64 @@
 import { useEffect, useState } from 'react';
+<<<<<<< HEAD
 import { postsApi, Post, PostCategory } from '@/api/posts'; 
 import { POST_TAGS } from '@/api/posts'; 
+=======
+import { postsApi, Post, PostCategory } from '@/api/posts'; // ИСПРАВЛЕНИЕ 1: Импортируем Post и PostCategory
+import { POST_TAGS } from '@/api/posts'; // ИСПРАВЛЕНИЕ 2: POST_TAGS из posts.ts
+>>>>>>> 4ac6ce53e96cdab6b88e2b60484fb183d052d09a
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface PostsListProps {
+<<<<<<< HEAD
   onEdit: (post: Post) => void; 
   onDelete: (post: Post) => void; 
+=======
+  onEdit: (post: Post) => void; // ИСПРАВЛЕНИЕ 3: NewsPost заменен на Post
+  onDelete: (post: Post) => void; // ИСПРАВЛЕНИЕ 3: NewsPost заменен на Post
+>>>>>>> 4ac6ce53e96cdab6b88e2b60484fb183d052d09a
   onCreate: () => void;
   refreshTrigger?: number;
 }
 
 export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }: PostsListProps) {
+<<<<<<< HEAD
   const [posts, setPosts] = useState<Post[]>([]); 
+=======
+  const [posts, setPosts] = useState<Post[]>([]); // ИСПРАВЛЕНИЕ 4: NewsPost заменен на Post
+>>>>>>> 4ac6ce53e96cdab6b88e2b60484fb183d052d09a
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const loadPosts = async () => {
     try {
       setLoading(true);
+<<<<<<< HEAD
       // ИСПРАВЛЕНИЕ: Явно указываем PostCategory.News (0) для устранения ошибки 422
       const data = await postsApi.getAll({ 
           limit: 500, // Используем большой лимит, как в ошибке
           offset: 0,
           category: PostCategory.News, // Явно фильтруем по новостям
       });
+=======
+      // Используем postsApi.getAll. По умолчанию, он загрузит все категории, что подходит для общего списка.
+      const data = await postsApi.getAll({ limit: 100, offset: 0 });
+>>>>>>> 4ac6ce53e96cdab6b88e2b60484fb183d052d09a
 
       if (Array.isArray(data)) {
+        // Убираем нормализацию. data теперь должна быть массивом Post[] с полем body.
+        // Оставим только проверку, что все пришедшие посты действительно имеют author и body.
         const normalizedPosts = data.map(post => ({
           ...post,
+<<<<<<< HEAD
           author: post.author || 'Неизвестный автор', 
+=======
+          // Убедимся, что author присутствует, так как Post расширяет IncompletePost
+          author: post.author || 'Неизвестный автор', 
+          // body теперь стандартное поле (Пункт 10)
+>>>>>>> 4ac6ce53e96cdab6b88e2b60484fb183d052d09a
           body: post.body || '', 
         })) as Post[];
         
