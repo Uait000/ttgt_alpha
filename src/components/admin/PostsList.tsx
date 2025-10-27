@@ -1,34 +1,40 @@
 import { useEffect, useState } from 'react';
-import { postsApi } from '@/api/posts';
-import type { NewsPost } from '@/api/config';
-import { POST_TAGS } from '@/api/config';
+import { postsApi, Post, PostCategory } from '@/api/posts'; 
+import { POST_TAGS } from '@/api/posts'; 
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface PostsListProps {
-  onEdit: (post: NewsPost) => void;
-  onDelete: (post: NewsPost) => void;
+  onEdit: (post: Post) => void; 
+  onDelete: (post: Post) => void; 
   onCreate: () => void;
   refreshTrigger?: number;
 }
 
 export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }: PostsListProps) {
-  const [posts, setPosts] = useState<NewsPost[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]); 
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const loadPosts = async () => {
     try {
       setLoading(true);
-      const data = await postsApi.getAll({ limit: 100, offset: 0 });
+      // ИСПРАВЛЕНИЕ: Явно указываем PostCategory.News (0) для устранения ошибки 422
+      const data = await postsApi.getAll({ 
+          limit: 500, // Используем большой лимит, как в ошибке
+          offset: 0,
+          category: PostCategory.News, // Явно фильтруем по новостям
+      });
 
       if (Array.isArray(data)) {
         const normalizedPosts = data.map(post => ({
           ...post,
-          body: (post as any).text || post.body || '',
-        }));
+          author: post.author || 'Неизвестный автор', 
+          body: post.body || '', 
+        })) as Post[];
+        
         setPosts(normalizedPosts);
       } else {
         console.error("API did not return an array for posts:", data);
@@ -61,6 +67,10 @@ export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }
 
   if (loading) {
     return <div className="text-center py-8">Загрузка...</div>;
+  }
+
+  function setDeleteId(id: number): void {
+    throw new Error('Function not implemented.');
   }
 
   return (
@@ -108,7 +118,7 @@ export default function PostsList({ onEdit, onDelete, onCreate, refreshTrigger }
                       <Button variant="ghost" size="sm" onClick={() => onEdit(JSON.parse(JSON.stringify(post)))} className="gap-1">
                         <Pencil className="h-4 w-4" /> Редактировать
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => onDelete(post)} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+                      <Button variant="ghost" size="sm" onClick={() => setDeleteId(post.id)} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
                         <Trash2 className="h-4 w-4" /> Удалить
                       </Button>
                     </div>

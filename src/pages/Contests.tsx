@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { contestsApi } from '@/api/contests-api';
-import type { Contest } from '@/api/config';
+// ИСПРАВЛЕНИЕ 1: contestsApi заменен на postsApi. Добавлен Post и PostCategory.
+import { postsApi, Post, PostCategory } from '@/api/posts'; 
+// ИСПРАВЛЕНИЕ 2: Contest (из config) заменен на Post (из posts)
+import type { Post as Contest } from '@/api/posts'; 
 import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
@@ -17,10 +19,18 @@ const Contests = () => {
   const loadContests = async () => {
     try {
       setLoading(true);
-      const data = await contestsApi.getAll();
-      setContests(data);
+      // ИСПРАВЛЕНИЕ 3: Используем postsApi.getAll с фильтром по категории "Конкурсы"
+      const data = await postsApi.getAll({ 
+        category: PostCategory.Contests,
+        limit: 100, // Добавим лимит, если он не указан явно, для безопасности
+      });
+      
+      // Поскольку мы импортировали Post как Contest (type { Post as Contest }), 
+      // TypeScript не будет ругаться, а данные будут корректными.
+      setContests(data as Contest[]); 
     } catch (error) {
       console.error('Failed to load contests:', error);
+      setContests([]); // Очищаем список при ошибке
     } finally {
       setLoading(false);
     }

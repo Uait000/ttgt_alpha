@@ -3,93 +3,137 @@ import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import { ExternalLink, FileText } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import Sp1 from '@/assets/file/start/VIII_RSIK_Srart_v_nauku_2025_Spisok_uch.pdf';
+import Sp2 from '@/assets/file/start/VIII_RSIK_Srart_v_nauku_2025_progr_10041.pdf';
+import Sp3 from '@/assets/file/start/VIII_RSIK_Srart_v_nauku_2025_progr_1004.pdf';
+import Sp4 from '@/assets/file/start/VIII_RSIK_Srart_v_nauku_2025_rezult.pdf';
+import Sp5 from '@/assets/file/start/Pol_Start_v_nauku_2024.pdf';
+import Sp6 from '@/assets/file/start/Start_v_Nauku_Pod_zayavl_2024.pdf';
+import Sp7 from '@/assets/file/start/Start_v_Nauku_Progr_8_04_2024.pdf';
+import Sp8 from '@/assets/file/start/Start_v_Nauku_Progr_9_04_2024.pdf';
+import Sp9 from '@/assets/file/start/Start_v_nauku_24_Itog_Protokol.pdf';
+import Sp10 from '@/assets/file/start/Start_v_nauku_24_Itog_Protokol_ball.pdf';
+import Sp11 from '@/assets/file/start/Materialy_VII_sk.pdf';
+import Sp12 from '@/assets/file/start/Pol_VII_Start_v_nauku_2023.pdf';
+import Sp13 from '@/assets/file/start/Programma_VII_Start_v_nauku_20231.pdf';
+import Lp14 from '@/assets/file/start/Start_v_nauku_Prot_1_Vlasova.pdf';
+import Lp15 from '@/assets/file/start/Start_v_nauku_Prot_1_V.pdf';
+import Lp16 from '@/assets/file//start/Start_v_nauku_Prot_1_Korobeynikov.pdf';
+import Lp17 from '@/assets/file/start/Start_v_nauku_Prot_1_Leshhinskaya.pdf';
+import Sp18 from '@/assets/file/start/Start_v_nauku_Itog_Prot_1.pdf';
+import Sp19 from '@/assets/file/start/Start_v_nauku_Prot_2_Vlasova.pdf';
+import Sp20 from '@/assets/file/start/Start_v_nauku_Prot_2_Vyalov.pdf';
+import Sp21 from '@/assets/file/start/Start_v_nauku_Prot_2_Korobeynikov.pdf';
+import Sp22 from '@/assets/file/start/Start_v_nauku_Prot_2_Leshhinskaya.pdf';
+import Sp23 from '@/assets/file/start/Start_v_nauku_Itog_Prot_2.pdf';
+import Sp24 from '@/assets/file/start/Start_v_nauku_Prot_3_Vlasova.pdf';
+import Sp25 from '@/assets/file/start/Start_v_nauku_Prot_3_Vyalov.pdf';
+import Sp26 from '@/assets/file/start/Start_v_nauku_Prot_3_Korobeynikov.pdf';
+import Sp27 from '@/assets/file/start/Start_v_nauku_Prot_3_Leshhinskaya.pdf';
+import Sp28 from '@/assets/file/start/Start_v_nauku_Itog_Prot_3.pdf';
+import Sp29 from '@/assets/file/start/Start_v_nauku_Prot_4_Vlasova.pdf';
+import Sp30 from '@/assets/file/start/Start_v_nauku_Prot_4_Vyalov.pdf';
+import Sp31 from '@/assets/file/start/Start_v_nauku_Prot_4_Korobeynikov.pdf';
+import Sp32 from '@/assets/file/start/Start_v_nauku_Prot_4_Leshhinskaya.pdf';
+import Sp33 from '@/assets/file/start/Start_v_nauku_Itog_Prot_4.pdf';
+import Sp34 from '@/assets/file/start/Start_v_nauku_Prot_5_Vlasova.pdf';
+import Sp35 from '@/assets/file/start/Start_v_nauku_Prot_5_Vyalov.pdf';
+import Sp36 from '@/assets/file/start/Start_v_nauku_Prot_5_Korobeynikov.pdf';
+import Sp37 from '@/assets/file/start/Start_v_nauku_Prot_5_Leshhinskaya.pdf';
+import Sp38 from '@/assets/file/start/Start_v_nauku_Itog_Prot_5.pdf';
+import Sp39 from '@/assets/file/start/Start_v_nauku_Prot_6_Vlasova.pdf';
+import Sp40 from '@/assets/file/start/Start_v_nauku_Prot_6_Vyalov.pdf';
+import Sp41 from '@/assets/file/start/Start_v_nauku_Prot_6_Korobeynikov.pdf';
+import Sp42 from '@/assets/file/start/Start_v_nauku_Prot_6_Leshhinskaya.pdf';
+import Sp43 from '@/assets/file/start/Start_v_nauku_Itog_Prot_6.pdf';
+import Sp44 from '@/assets/file/start/Start_V_Nauku_2023_sbornik.pdf';
 
 const StartInScience = () => {
   const documents2025 = [
     { name: 'Положение о проведении VIII региональной студенческой исследовательской конференции (с международным участием) посвящённой Десятилетию науки и технологий в Российской Федерации «Старт в науку»', url: '/science/2025/polozhenie.pdf' },
-    { name: 'Список подавших документы для участия в VIII региональной студенческой исследовательской конференции (с международным участием) посвященной десятилетию науки и технологий в Российской Федерации "СТАРТ В НАУКУ"', url: '/science/2025/spisok-uchastnikov.pdf' },
-    { name: 'Программа работы конференции 10 апреля 2025 г.', url: '/science/2025/programma-10-aprelya.pdf' },
-    { name: 'Программа работы конференции 11 апреля 2025 г.', url: '/science/2025/programma-11-aprelya.pdf' },
-    { name: 'Итоговый протокол (результаты) оценивания участников', url: '/science/2025/itogi.pdf' }
+    { name: 'Список подавших документы для участия в VIII региональной студенческой исследовательской конференции (с международным участием) посвященной десятилетию науки и технологий в Российской Федерации "СТАРТ В НАУКУ"', url: Sp1  },
+    { name: 'Программа работы конференции 10 апреля 2025 г.', url: Sp2 },
+    { name: 'Программа работы конференции 11 апреля 2025 г.', url: Sp3 },
+    { name: 'Итоговый протокол (результаты) оценивания участников', url: Sp4 }
   ];
 
   const documents2024 = [
-    { name: 'ВНИМАНИЕ! Конференция переносится на 8 - 9 апреля 2024 года', url: '/science/2024/vnimanie.pdf', isAlert: true },
-    { name: 'Положение о проведении VII региональной студенческой исследовательской конференции (с международным участием) посвящённой Десятилетию науки и технологий в Российской Федерации «Старт в науку»', url: '/science/2024/polozhenie.pdf' },
-    { name: 'Список подавших документы для участия', url: '/science/2024/spisok-uchastnikov.pdf' },
-    { name: 'Программа работы конференции 8 апреля 2024 г.', url: '/science/2024/programma-8-aprelya.pdf' },
-    { name: 'Программа работы конференции 9 апреля 2024 г.', url: '/science/2024/programma-9-aprelya.pdf' },
-    { name: 'ИТОГОВЫЙ ПРОТОКОЛ (РЕЗУЛЬТАТЫ) оценивания участников', url: '/science/2024/itogi.pdf' },
-    { name: 'ИТОГОВЫЕ ПРОТОКОЛЫ оценивания участников', url: '/science/2024/itogi-protokoly.pdf' },
-    { name: 'Материалы VII региональной студенческой исследовательской конференции (с международным участием) посвящённой Десятилетию науки и технологий в Российской Федерации «СТАРТ В НАУКУ»', url: '/science/2024/materialy.pdf' }
+    { name: 'ВНИМАНИЕ! Конференция переносится на 8 - 9 апреля 2024 года', isAlert: true },
+    { name: 'Положение о проведении VII региональной студенческой исследовательской конференции (с международным участием) посвящённой Десятилетию науки и технологий в Российской Федерации «Старт в науку»', url: Sp5 },
+    { name: 'Список подавших документы для участия', url: Sp6 },
+    { name: 'Программа работы конференции 8 апреля 2024 г.', url: Sp7 },
+    { name: 'Программа работы конференции 9 апреля 2024 г.', url: Sp8 },
+    { name: 'ИТОГОВЫЙ ПРОТОКОЛ (РЕЗУЛЬТАТЫ) оценивания участников', url: Sp9 },
+    { name: 'ИТОГОВЫЕ ПРОТОКОЛЫ оценивания участников', url: Sp10 },
+    { name: 'Материалы VII региональной студенческой исследовательской конференции (с международным участием) посвящённой Десятилетию науки и технологий в Российской Федерации «СТАРТ В НАУКУ»', url: Sp11 }
   ];
 
   const documents2023Main = [
-    { name: 'Положение о проведении VI региональной студенческой исследовательской конференции (с международным участием) посвящённой Десятилетию науки и технологий в Российской Федерации «Старт в науку»', url: '/science/2023/polozhenie.pdf' },
-    { name: 'СПИСОК ПОДАВШИХ ДОКУМЕНТЫ ДЛЯ УЧАСТИЯ', url: '/science/2023/spisok-uchastnikov.pdf' },
-    { name: 'Программа работы конференции', url: '/science/2023/programma.pdf' }
+    { name: 'Положение о проведении VI региональной студенческой исследовательской конференции (с международным участием) посвящённой Десятилетию науки и технологий в Российской Федерации «Старт в науку»', url: Sp12 },
+    { name: 'СПИСОК ПОДАВШИХ ДОКУМЕНТЫ ДЛЯ УЧАСТИЯ' },
+    { name: 'Программа работы конференции', url: Sp13 }
   ];
 
   const nominations2023 = [
     {
       name: 'Система управления качеством, повышение производительности труда и экономической эффективности железнодорожного трансорта. Интеллектуальные системы управления',
       experts: [
-        { name: 'член Экспертного совета В.Н. Власова', url: '/science/2023/protocols/nom1-vlasova.pdf' },
-        { name: 'член Экспертного совета С.А. Вялов', url: '/science/2023/protocols/nom1-vyalov.pdf' },
-        { name: 'член Экспертного совета Т.А. Коробейников', url: '/science/2023/protocols/nom1-korobeynikov.pdf' },
-        { name: 'член Экспертного совета В.И. Лещинская', url: '/science/2023/protocols/nom1-leshchinskaya.pdf' }
+        { name: 'член Экспертного совета В.Н. Власова', url: Lp14 },
+        { name: 'член Экспертного совета С.А. Вялов', url: Lp15 },
+        { name: 'член Экспертного совета Т.А. Коробейников', url: Lp16 },
+        { name: 'член Экспертного совета В.И. Лещинская', url: Lp17 }
       ],
-      finalUrl: '/science/2023/finals/nom1-final.pdf'
+      finalUrl: Sp18
     },
     {
       name: 'Научно-популярный туризм (развитие туристической индустрии/внутренний туризм',
       experts: [
-        { name: 'член Экспертного совета В.Н. Власова', url: '/science/2023/protocols/nom2-vlasova.pdf' },
-        { name: 'член Экспертного совета С.А. Вялов', url: '/science/2023/protocols/nom2-vyalov.pdf' },
-        { name: 'член Экспертного совета Т.А. Коробейников', url: '/science/2023/protocols/nom2-korobeynikov.pdf' },
-        { name: 'член Экспертного совета В.И. Лещинская', url: '/science/2023/protocols/nom2-leshchinskaya.pdf' }
+        { name: 'член Экспертного совета В.Н. Власова', url: Sp19 },
+        { name: 'член Экспертного совета С.А. Вялов', url: Sp20 },
+        { name: 'член Экспертного совета Т.А. Коробейников', url: Sp21 },
+        { name: 'член Экспертного совета В.И. Лещинская', url: Sp22 }
       ],
-      finalUrl: '/science/2023/finals/nom2-final.pdf'
+      finalUrl: Sp23
     },
     {
       name: 'Повышение престижа рабочих профессий. Техническое творчество в образовательном процессе',
       experts: [
-        { name: 'член Экспертного совета В.Н. Власова', url: '/science/2023/protocols/nom3-vlasova.pdf' },
-        { name: 'член Экспертного совета С.А. Вялов', url: '/science/2023/protocols/nom3-vyalov.pdf' },
-        { name: 'член Экспертного совета Т.А. Коробейников', url: '/science/2023/protocols/nom3-korobeynikov.pdf' },
-        { name: 'член Экспертного совета В.И. Лещинская', url: '/science/2023/protocols/nom3-leshchinskaya.pdf' }
+        { name: 'член Экспертного совета В.Н. Власова', url: Sp24 },
+        { name: 'член Экспертного совета С.А. Вялов', url: Sp25 },
+        { name: 'член Экспертного совета Т.А. Коробейников', url: Sp26 },
+        { name: 'член Экспертного совета В.И. Лещинская', url: Sp27 }
       ],
-      finalUrl: '/science/2023/finals/nom3-final.pdf'
+      finalUrl: Sp28
     },
     {
       name: 'Повышение надежности работы и увеличение эксплуатационного ресурса технических средств железнодорожного транспорта',
       experts: [
-        { name: 'член Экспертного совета В.Н. Власова', url: '/science/2023/protocols/nom4-vlasova.pdf' },
-        { name: 'член Экспертного совета С.А. Вялов', url: '/science/2023/protocols/nom4-vyalov.pdf' },
-        { name: 'член Экспертного совета Т.А. Коробейников', url: '/science/2023/protocols/nom4-korobeynikov.pdf' },
-        { name: 'член Экспертного совета В.И. Лещинская', url: '/science/2023/protocols/nom4-leshchinskaya.pdf' }
+        { name: 'член Экспертного совета В.Н. Власова', url: Sp29 },
+        { name: 'член Экспертного совета С.А. Вялов', url: Sp30 },
+        { name: 'член Экспертного совета Т.А. Коробейников', url: Sp31 },
+        { name: 'член Экспертного совета В.И. Лещинская', url: Sp32 }
       ],
-      finalUrl: '/science/2023/finals/nom4-final.pdf'
+      finalUrl: Sp33
     },
     {
       name: 'Безопасность и охрана окружающей среды на железнодорожном транспорте, на объектах транспортной инфраструктуры и при выполнении работ',
       experts: [
-        { name: 'член Экспертного совета В.Н. Власова', url: '/science/2023/protocols/nom5-vlasova.pdf' },
-        { name: 'член Экспертного совета С.А. Вялов', url: '/science/2023/protocols/nom5-vyalov.pdf' },
-        { name: 'член Экспертного совета Т.А. Коробейников', url: '/science/2023/protocols/nom5-korobeynikov.pdf' },
-        { name: 'член Экспертного совета В.И. Лещинская', url: '/science/2023/protocols/nom5-leshchinskaya.pdf' }
+        { name: 'член Экспертного совета В.Н. Власова', url: Sp34 },
+        { name: 'член Экспертного совета С.А. Вялов', url: Sp35 },
+        { name: 'член Экспертного совета Т.А. Коробейников', url: Sp36 },
+        { name: 'член Экспертного совета В.И. Лещинская', url: Sp37 }
       ],
-      finalUrl: '/science/2023/finals/nom5-final.pdf'
+      finalUrl: Sp38
     },
     {
       name: 'История науки и технологий. Научные юбилеи',
       experts: [
-        { name: 'член Экспертного совета В.Н. Власова', url: '/science/2023/protocols/nom6-vlasova.pdf' },
-        { name: 'член Экспертного совета С.А. Вялов', url: '/science/2023/protocols/nom6-vyalov.pdf' },
-        { name: 'член Экспертного совета Т.А. Коробейников', url: '/science/2023/protocols/nom6-korobeynikov.pdf' },
-        { name: 'член Экспертного совета В.И. Лещинская', url: '/science/2023/protocols/nom6-leshchinskaya.pdf' }
+        { name: 'член Экспертного совета В.Н. Власова', url: Sp39 },
+        { name: 'член Экспертного совета С.А. Вялов', url: Sp40 },
+        { name: 'член Экспертного совета Т.А. Коробейников', url: Sp41 },
+        { name: 'член Экспертного совета В.И. Лещинская', url: Sp42 }
       ],
-      finalUrl: '/science/2023/finals/nom6-final.pdf'
+      finalUrl: Sp43
     }
   ];
 

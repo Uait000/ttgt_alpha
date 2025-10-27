@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { postsApi, type CreatePostPayload, ConflictError } from '@/api/posts';
+import { postsApi, type CreatePostPayload, ConflictError, Post, PostCategory } from '@/api/posts'; // Добавил Post и PostCategory
 import { teachersApi } from '@/api/teachers';
-import type { NewsPost, Teacher } from '@/api/config';
-import { POST_TAGS } from '@/api/config';
+import type { Teacher } from '@/api/teachers'; // Teacher, так как NewsPost удален
+import { POST_TAGS } from '@/api/posts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,7 +34,7 @@ interface ContestFormProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  editPost?: NewsPost | null;
+  editPost?: Post | null; // ИСПРАВЛЕНИЕ: NewsPost заменен на Post
 }
 
 export default function ContestForm({ open, onClose, onSuccess, editPost }: ContestFormProps) {
@@ -45,14 +45,16 @@ export default function ContestForm({ open, onClose, onSuccess, editPost }: Cont
   const [titleError, setTitleError] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // ИСПРАВЛЕНИЕ: Обновлена структура formData согласно CreatePostPayload
   const [formData, setFormData] = useState<CreatePostPayload>({
     title: '',
-    content: '',
+    body: '', // ИСПРАВЛЕНИЕ: content заменен на body (Пункт 10)
     author: '',
     type: 0,
-    image_urls: [],
-    date: new Date().toISOString(),
-    category: 3,
+    files: [], // ИСПРАВЛЕНИЕ: image_urls заменен на files (Пункт 9)
+    publish_date: new Date().getTime(), // ИСПРАВЛЕНИЕ: date заменен на publish_date (Пункт 7: date как number)
+    category: PostCategory.Contests, // ИСПРАВЛЕНИЕ: 3 заменен на PostCategory.Contests
+    status: 0, // Добавлен status, необходимый для CreatePostPayload
   });
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -74,31 +76,36 @@ export default function ContestForm({ open, onClose, onSuccess, editPost }: Cont
     setTitleError(null);
 
     if (open && editPost) {
-      const postDate = new Date(editPost.publish_date * 1000);
+      // ИСПРАВЛЕНИЕ: publish_date - это число секунд, умножаем на 1000 для Date
+      const postDate = new Date(editPost.publish_date * 1000); 
 
       setFormData({
         title: editPost.title,
-        content: '',
+        body: editPost.body, // ИСПРАВЛЕНИЕ: content заменен на body
         author: editPost.author,
         type: editPost.type,
-        image_urls: editPost.image_urls || [],
-        date: postDate.toISOString(),
-        category: 3,
+        // ИСПРАВЛЕНИЕ: files теперь массив BackendFile, для Payload нам нужны только ID (строки)
+        files: editPost.files.map(f => f.id) || [], 
+        publish_date: editPost.publish_date, // ИСПРАВЛЕНИЕ: date заменен на publish_date
+        category: PostCategory.Contests, // Категория остается конкурсом
+        status: 0, // Добавлен status
       });
       setSelectedDate(postDate);
       setPdfFile1(null);
       setPdfFile2(null);
     } else if (open && !editPost) {
+      const initialDate = new Date();
       setFormData({
         title: '',
-        content: '',
+        body: '', // ИСПРАВЛЕНИЕ: content заменен на body
         author: teachers.length > 0 ? teachers[0].initials : '',
         type: 0,
-        image_urls: [],
-        date: new Date().toISOString(),
-        category: 3,
+        files: [], // ИСПРАВЛЕНИЕ: image_urls заменен на files
+        publish_date: Math.floor(initialDate.getTime() / 1000), // Дата в секундах
+        category: PostCategory.Contests, // Категория остается конкурсом
+        status: 0, // Добавлен status
       });
-      setSelectedDate(new Date());
+      setSelectedDate(initialDate);
       setPdfFile1(null);
       setPdfFile2(null);
     }
@@ -113,6 +120,7 @@ export default function ContestForm({ open, onClose, onSuccess, editPost }: Cont
       return;
     }
 
+    // Проверка наличия первого PDF только при создании
     if (!editPost && !pdfFile1) {
       toast({ title: 'Ошибка', description: 'Пожалуйста, загрузите документ "Положение"', variant: 'destructive' });
       return;
@@ -120,30 +128,38 @@ export default function ContestForm({ open, onClose, onSuccess, editPost }: Cont
 
     setLoading(true);
     try {
-      let pdfIds: string[] = editPost?.image_urls || [];
-
+      // ИСПРАВЛЕНИЕ: Собираем текущие ID файлов. Для Post это files, который содержит BackendFile. 
+      // При редактировании нам нужно взять ID-шки
+      let pdfIds: string[] = editPost?.files.map(f => f.id) || []; 
+      
+      // Логика загрузки PDF для Contest
       if (pdfFile1) {
         const uploadResult1 = await filesApi.upload(pdfFile1);
         if (typeof uploadResult1 === 'string' && uploadResult1) {
-          pdfIds = [uploadResult1];
+          pdfIds[0] = uploadResult1; // Заменяем первый файл или добавляем
         }
       }
 
       if (pdfFile2) {
         const uploadResult2 = await filesApi.upload(pdfFile2);
         if (typeof uploadResult2 === 'string' && uploadResult2) {
-          pdfIds.push(uploadResult2);
+          pdfIds[1] = uploadResult2; // Заменяем второй файл или добавляем
         }
       }
-
+      
+      // Очищаем массив от undefined, если второй файл не был загружен при создании, но editPost его не имел
+      pdfIds = pdfIds.filter(id => id); 
+      
+      // ИСПРАВЛЕНИЕ: Обновляем Payload
       const payload: CreatePostPayload = {
         ...formData,
-        content: 'PDF документы конкурса',
-        date: selectedDate.toISOString(),
-        image_urls: pdfIds,
+        body: 'PDF документы конкурса', // ИСПРАВЛЕНИЕ: content заменен на body
+        publish_date: Math.floor(selectedDate.getTime() / 1000), // ИСПРАВЛЕНИЕ: date заменен на publish_date (в секундах)
+        files: pdfIds, // ИСПРАВЛЕНИЕ: image_urls заменен на files
       };
 
       if (editPost) {
+        // При обновлении postsApi.update принимает Partial<CreatePostPayload>
         await postsApi.update(editPost.id, payload);
         toast({ title: 'Успешно', description: 'Конкурс обновлен' });
       } else {
@@ -163,16 +179,18 @@ export default function ContestForm({ open, onClose, onSuccess, editPost }: Cont
   };
 
   const handleClose = () => {
+    const initialDate = new Date();
     setFormData({
       title: '',
-      content: '',
+      body: '', // ИСПРАВЛЕНИЕ: content заменен на body
       author: teachers.length > 0 ? teachers[0].initials : '',
       type: 0,
-      image_urls: [],
-      date: new Date().toISOString(),
-      category: 3,
+      files: [], // ИСПРАВЛЕНИЕ: image_urls заменен на files
+      publish_date: Math.floor(initialDate.getTime() / 1000), // Дата в секундах
+      category: PostCategory.Contests, // Категория остается конкурсом
+      status: 0, // Добавлен status
     });
-    setSelectedDate(new Date());
+    setSelectedDate(initialDate);
     setPdfFile1(null);
     setPdfFile2(null);
     setTitleError(null);
@@ -242,13 +260,15 @@ export default function ContestForm({ open, onClose, onSuccess, editPost }: Cont
           </div>
 
           <PDFUpload
-            value={pdfFile1 || (editPost?.image_urls?.[0] || '')}
+            // ИСПРАВЛЕНИЕ: editPost?.files теперь содержит BackendFile[], берем только ID (строку)
+            value={pdfFile1 || (editPost?.files?.[0]?.id || '')} 
             onChange={setPdfFile1}
             label="Положение *"
           />
 
           <PDFUpload
-            value={pdfFile2 || (editPost?.image_urls?.[1] || '')}
+            // ИСПРАВЛЕНИЕ: editPost?.files теперь содержит BackendFile[], берем только ID (строку)
+            value={pdfFile2 || (editPost?.files?.[1]?.id || '')} 
             onChange={setPdfFile2}
             label="Регламент (если есть)"
           />

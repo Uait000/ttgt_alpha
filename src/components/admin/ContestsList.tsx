@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { postsApi } from '@/api/posts';
-import type { NewsPost } from '@/api/config';
-import { POST_TAGS, BASE_URL } from '@/api/config';
+import { postsApi, Post, PostCategory } from '@/api/posts'; // ИСПРАВЛЕНИЕ: Импортируем Post и PostCategory
+import { POST_TAGS } from '@/api/posts'; // ИСПРАВЛЕНИЕ: POST_TAGS из posts.ts
+import { BASE_URL } from '@/api/config'; // ИСПРАВЛЕНИЕ: BASE_URL из config.ts
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -27,26 +27,26 @@ import ContestForm from './ContestForm';
 import { Badge } from '@/components/ui/badge';
 
 export default function ContestsList() {
-  const [posts, setPosts] = useState<NewsPost[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]); // ИСПРАВЛЕНИЕ: NewsPost заменен на Post
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const [editPost, setEditPost] = useState<NewsPost | null>(null);
+  const [editPost, setEditPost] = useState<Post | null>(null); // ИСПРАВЛЕНИЕ: NewsPost заменен на Post
   const { toast } = useToast();
 
   const loadPosts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${BASE_URL}/content/posts/?category=3&limit=100&offset=0`);
-      if (!response.ok) throw new Error('Failed to fetch');
-      const data = await response.json();
+      // ИСПРАВЛЕНИЕ: Используем postsApi.getAll с параметром category (Пункт 8)
+      const data = await postsApi.getAll({ 
+        category: PostCategory.Contests, 
+        limit: 100, 
+        offset: 0 
+      });
 
       if (Array.isArray(data)) {
-        const normalizedPosts = data.map(post => ({
-          ...post,
-          body: (post as any).text || post.body || '',
-        }));
-        setPosts(normalizedPosts);
+        // Убираем старую логику fetch и нормализацию, так как postsApi должен возвращать Post[]
+        setPosts(data); 
       } else {
         setPosts([]);
       }
@@ -87,7 +87,7 @@ export default function ContestsList() {
     }
   };
 
-  const handleEdit = (post: NewsPost) => {
+  const handleEdit = (post: Post) => { // ИСПРАВЛЕНИЕ: NewsPost заменен на Post
     setEditPost(post);
     setFormOpen(true);
   };
@@ -110,6 +110,9 @@ export default function ContestsList() {
       year: 'numeric', month: 'long', day: 'numeric',
     });
   };
+  
+  // Убираем /api из BASE_URL для формирования корректных ссылок на файлы
+  const cleanBaseUrl = BASE_URL.replace('/api', '');
 
   return (
     <div className="space-y-4">
@@ -156,17 +159,20 @@ export default function ContestsList() {
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        {post.image_urls && post.image_urls.length > 0 ? (
-                          post.image_urls.map((url, index) => (
+                        {/* ИСПРАВЛЕНИЕ: Используем post.files (BackendFile[]), берем id для ссылки */}
+                        {post.files && post.files.length > 0 ? (
+                          post.files.map((file, index) => (
                             <a
-                              key={index}
-                              href={`${BASE_URL}/files/${url}`}
+                              key={file.id} // Используем id файла как ключ
+                              // ИСПРАВЛЕНИЕ: Ссылка на файл теперь использует file.id
+                              href={`${cleanBaseUrl}/files/${file.id}`} 
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-1 text-primary hover:underline text-sm"
                             >
                               <FileText className="h-4 w-4" />
-                              {index === 0 ? 'Положение' : 'Регламент'}
+                              {/* ИСПРАВЛЕНИЕ: Если нет имени файла, используем метки */}
+                              {file.name || (index === 0 ? 'Положение' : 'Регламент')}
                             </a>
                           ))
                         ) : (
@@ -176,6 +182,7 @@ export default function ContestsList() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        {/* При передаче поста в форму, убедитесь, что клонируете объект, чтобы избежать мутаций */}
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(JSON.parse(JSON.stringify(post)))} className="gap-1">
                           <Pencil className="h-4 w-4" /> Редактировать
                         </Button>

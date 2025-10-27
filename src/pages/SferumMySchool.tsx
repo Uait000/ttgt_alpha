@@ -2,39 +2,40 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import { FileText, ExternalLink } from 'lucide-react';
-
+import S1 from '@/assets/file/sferum/Metod_rek_2023.pdf';
+import S2 from '@/assets/file/sferum/Pol_Sferum_31.08.2023.pdf';
 const SferumMySchool = () => {
   const sferumDocuments = [
     {
       title: 'Библиотека полезных материалов',
-      url: '#'
+      url: 'https://prof.sferum.ru/start_docs#tab3'
     },
     {
       title: 'Пройти онлайн-курс и получить сертификат по платформе',
-      url: '#'
+      url: 'https://prof.sferum.ru/kurs'
     },
     {
       title: 'Методические рекомендации для педагогических работников образовательных организаций общего образования, образовательных организаций среднего профессионального образования, образовательных организаций дополнительного образования по использованию российского программного обеспечения при взаимодействии с обучающимися и их родителями (законными представителями)',
-      url: '#'
+      url: S1
     },
     {
       title: 'Положение об использовании в ТТЖТ - филиале РГУПС ИКОП "Сферум"',
-      url: '#'
+      url: S2
     }
   ];
 
   const mySchoolDocuments = [
     {
       title: 'Портал информационно-методической поддержки пользователей ФГИС "Моя школа"',
-      url: '#'
+      url: 'https://myschool.eduprosvet.ru'
     },
     {
       title: 'Инструкции',
-      url: '#'
+      url: 'https://myschool.eduprosvet.ru/data/instructions/'
     },
     {
       title: 'Видео',
-      url: '#'
+      url: 'https://myschool.eduprosvet.ru/data/video/'
     }
   ];
 
@@ -54,7 +55,7 @@ const SferumMySchool = () => {
                 {/* Hero image */}
                 <div className="w-full aspect-[16/6] bg-gradient-to-br from-green-100 to-green-200 rounded-lg overflow-hidden shadow-lg mb-8">
                   <img
-                    src="https://images.pexels.com/photos/163064/play-stone-network-networked-interactive-163064.jpeg"
+                    src="https://senkino.dobryanka-edu.ru/upload/versions/20851/82358/prorrl.png"
                     alt="Цифровые образовательные платформы"
                     className="w-full h-full object-cover"
                   />

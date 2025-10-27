@@ -2,6 +2,23 @@ import Header from '@/components/Header';
 import Sidebar from '@/components/Sidebar';
 import SidebarCards from '@/components/SidebarCards';
 import { FileText } from 'lucide-react';
+import rushabel from '@/assets/pictures/ria_8451769hr_c79.webp'
+import R1 from '@/assets/file/russia/V_Vser_stud_konf_Rossia_Belarus_2025_Programma.pdf';
+import R2 from '@/assets/file/russia/V_Vser_stud_konf_Rossiya_Belarus_2025_Spisok_Uchastn.pdf';
+import R3 from '@/assets/file/russia/V_Vser_stud_konf_Rossia_Belarus_2025_Protokol_S_bal.pdf';
+import R4 from '@/assets/file/russia/V_Vser_stud_konf_Rossia_Belarus_2025_Itog_Protokol.pdf';
+import R5 from '@/assets/file/russia/V_Vser_stud_konf_Rossia_Belarus_2025_Sbornik.pdf';
+import R6 from '@/assets/file/russia/Rossiya_Belorus_2024_Spisok_Pod_Doc.pdf';
+import R7 from '@/assets/file/russia/Rossiya_Belorus_2024_Programma.pdf';
+import R8 from '@/assets/file/russia/Rossiya_Belorus_2024_Protokol_zas_kom.pdf';
+import R9 from '@/assets/file/russia/Rossiya_Belorus_2024_Protokol_itog_zas_kom.pdf';
+import R10 from '@/assets/file/russia/Rossiya_Belorus_2024_Sbornik.pdf';
+import R11 from '@/assets/file/russia/III_MK_Ros_Belars_pol_31.03.2023.pdf';
+import R12 from '@/assets/file/russia/III_MK_Ros_Belars_programma_31.03.2023.pdf';
+import R13 from '@/assets/file/russia/III_MK_Ros_Belars_spisok_uch_31.03.2023.pdf';
+import R14 from '@/assets/file/russia/III_MK_Ros_Belars__Protokol_it_zased_kom.pdf';
+import R15 from '@/assets/file/russia/III_MK_Ros_Belars_spisok_pobedit_31.03.2023.pdf';
+import R16 from '@/assets/file/russia/III_MK_Ros_Belars_Sbornik_tezisov_31032023.pdf';
 
 const RussiaBelarusConference = () => {
   const documents2025 = [
@@ -11,77 +28,77 @@ const RussiaBelarusConference = () => {
     },
     {
       title: 'Программа работы V Всероссийской студенческой конференции с международным участием "Россия и Беларусь - вехи общей истории", посвященной Победе советского народа в Великой Отечественной войне',
-      url: '#'
+      url: R1
     },
     {
       title: 'Список подавших документы для участия в V Всероссийской студенческой конференции с международным участием "Россия и Беларусь - вехи общей истории", посвященной Победе советского народа в Великой Отечественной войне',
-      url: '#'
+      url: R2
     },
     {
       title: 'Протокол заседания экспертной комиссии участников очного этапа V Всероссийской студенческой конференции с международным участием "Россия и Беларусь – вехи общей истории", посвященной Победе советского народа в Великой Отечественной войне (27-28 марта 2025 г.)',
-      url: '#'
+      url: R3
     },
     {
       title: 'Протокол итогового заседания экспертной комиссии. Результаты V Всероссийской студенческой конференции с международным участием "Россия и Беларусь - вехи общей истории", посвящённой Победе советского народа в Великой Отечественной войне (27-28 марта 2025 г.)',
-      url: '#'
+      url: R4
     },
     {
       title: 'Материалы V Всероссийской студенческой конференции с международным участием "Россия и Беларусь - вехи общей истории", посвященной Победе советского народа в Великой Отечественной войне',
-      url: '#'
+      url: R5
     }
   ];
 
   const documents2024 = [
     {
       title: 'Положение о проведении IV Всероссийской студенческой конференции с международным участием "Россия и Беларусь - вехи общей истории", посвященной Победе советского народа в Великой Отечественной войне',
-      url: '#'
+      url: '#' //не ставить файл
     },
     {
       title: 'Список подавших документы для участия в IV Всероссийской студенческой конференции с международным участием "Россия и Беларусь - вехи общей истории", посвященной Победе советского народа в Великой Отечественной войне',
-      url: '#'
+      url: R6
     },
     {
       title: 'Программа работы IV Всероссийской студенческой конференции с международным участием "Россия и Беларусь - вехи общей истории", посвященной Победе советского народа в Великой Отечественной войне',
-      url: '#'
+      url: R7
     },
     {
       title: 'Протокол заседания экспертной комиссии участников очного этапа IV Всероссийской студенческой конференции с международным участием «Россия и Беларусь - вехи общей истории», посвящённой Победе советского народа в Великой Отечественной войне (28-29 марта 2024 г.)',
-      url: '#'
+      url: R8
     },
     {
       title: 'Протокол итогового заседания экспертной комиссии. Результаты IV Всероссийской студенческой конференции с международным участием «Россия и Беларусь - вехи общей истории», посвящённой Победе советского народа в Великой Отечественной войне (28-29 марта 2024 г.)',
-      url: '#'
+      url: R9
     },
     {
       title: 'Материалы IV Всероссийской студенческой конференции с международным участием "Россия и Беларусь - вехи общей истории", посвященной Победе советского народа в Великой Отечественной войне',
-      url: '#'
+      url: R10
     }
   ];
 
   const documents2023 = [
     {
       title: 'Положение о проведении III межрегиональной студенческой конференции с международным участием «Россия и Беларусь - вехи общей истории», посвящённой Победе советского народа в Великой Отечественной войне',
-      url: '#'
+      url: R11
     },
     {
       title: 'Программа конференции',
-      url: '#'
+      url: R12
     },
     {
       title: 'Список подавших документы для участия',
-      url: '#'
+      url: R13
     },
     {
       title: 'Протокол итогового заседания экспертной комиссии оценивания участников очного этапа с применением дистанционных технологий',
-      url: '#'
+      url: R14
     },
     {
       title: 'Список победителей, призёров и соискателей III межрегиональной студенческой конференции',
-      url: '#'
+      url: R15
     },
     {
       title: 'Сборник тезисов работ участников III межрегиональной студенческой конференции с международным участием «Россия и Беларусь – вехи общей истории»',
-      url: '#'
+      url: R16
     }
   ];
 
@@ -101,7 +118,7 @@ const RussiaBelarusConference = () => {
                 {/* Hero image */}
                 <div className="w-full aspect-[16/6] bg-gradient-to-br from-red-100 to-red-200 rounded-lg overflow-hidden shadow-lg mb-8">
                   <img
-                    src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg"
+                    src= {rushabel}
                     alt="Россия и Беларусь - вехи общей истории"
                     className="w-full h-full object-cover"
                   />
